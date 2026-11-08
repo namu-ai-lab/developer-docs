@@ -2,7 +2,7 @@
 
 The public documentation for the Namu API: speech recognition, speech synthesis, translation and a voice agent for
 Hausa, Zarma and French. A [Mintlify](https://mintlify.com) site modelled on the OpenAI API platform docs and the
-ElevenLabs developer docs. Every push to `main` deploys the site; every pull request gets a preview link.
+ElevenLabs developer docs. Every push to `main` deploys the site. (Preview links on pull requests need Mintlify's Pro plan; on the free plan, preview locally with `mint dev`.)
 
 The libraries it documents live in [namu-ai-lab/namu-sdks](https://github.com/namu-ai-lab/namu-sdks).
 
