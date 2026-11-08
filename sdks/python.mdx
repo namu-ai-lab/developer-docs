@@ -1,0 +1,166 @@
+---
+title: "Python"
+description: "The official Python library for the Namu API: speech, transcription, translation and the voice agent."
+icon: "code"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="The Namu API from Python" duration="6 min" />
+
+## Install
+
+```bash
+pip install namu-ai
+```
+
+Python 3.9 or later. The package is `namu-ai`; you import `namu`. Then set your key:
+
+```bash
+export NAMU_API_KEY="namu_sk_..."
+```
+
+## Quickstart
+
+```python
+from namu import Namu
+
+client = Namu()  # reads NAMU_API_KEY
+
+# Text to speech
+audio = client.speech("Sannu da zuwa! Muna farin cikin jin muryarku.", voice="nadia", format="mp3")
+open("welcome.mp3", "wb").write(audio)
+
+# Speech to text
+result = client.transcribe("welcome.mp3", language="ha")
+print(result["text"])
+```
+
+## Usage
+
+<AccordionGroup>
+  <Accordion title="Text to speech" icon="audio-lines" defaultOpen>
+    ```python
+    # Zarma, with Mouhamad, as a small Opus file for mobile data
+    audio = client.speech("Fofo! Mate ni go?", voice="mouhamad", language="dje", format="opus")
+    open("hello.ogg", "wb").write(audio)
+    ```
+    `format` is `wav` (default), `mp3` or `opus`. See [text to speech](/capabilities/text-to-speech).
+  </Accordion>
+
+  <Accordion title="Speech to text" icon="mic">
+    ```python
+    # A path, bytes, or an open file all work
+    result = client.transcribe("voice-note.ogg", language="ha")
+    print(result["text"], result["audio_seconds"])
+    ```
+  </Accordion>
+
+  <Accordion title="Translation" icon="languages">
+    ```python
+    # Text
+    fr = client.translate("Ina kwana? Yau za a yi zafi sosai.", source="ha", target="fr")
+    print(fr["text"])
+
+    # Speech, with the translation spoken back
+    import base64
+    result = client.translate(audio="question.ogg", source="ha", target="fr", include_audio=True)
+    open("answer.wav", "wb").write(base64.b64decode(result["audio"]))
+    ```
+  </Accordion>
+
+  <Accordion title="Voice agent (research)" icon="message-circle">
+    ```python
+    import base64
+    turn = client.converse("hello.ogg", session_id="demo-42")
+    print(turn["heard"], "→", turn["reply"])
+    open("reply.wav", "wb").write(base64.b64decode(turn["audio"]))
+    ```
+    The key needs the `converse` scope.
+  </Accordion>
+
+  <Accordion title="Usage, voices and models" icon="gauge">
+    ```python
+    print(client.usage())   # {'month_audio_seconds_used': 312.4, 'month_audio_seconds_limit': 1800.0}
+    print([v["id"] for v in client.voices()])   # ['nadia', 'warm', 'fr', 'mouhamad']
+    print([m["id"] for m in client.models()])
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Errors
+
+Every error is a `NamuError`; errors the API answered carry its stable `type`, the `status`, a `message` and the `request_id`. Each status has its own class:
+
+```python
+from namu import Namu, NamuError, QuotaExceededError, BadRequestError, APIConnectionError
+
+try:
+    audio = client.speech(text, voice="nadia")
+except QuotaExceededError:
+    ...  # this month's allowance is used
+except BadRequestError as e:
+    print(e.type, e.message)  # unknown_voice, unsupported_language, missing_text, ...
+except APIConnectionError:
+    ...  # the API could not be reached, even after the retries
+except NamuError as e:
+    print(e.status, e.type, e.request_id)
+```
+
+| Class | Status |
+| --- | --- |
+| `BadRequestError` | 400 |
+| `AuthenticationError` | 401 |
+| `PermissionDeniedError` | 403 |
+| `PayloadTooLargeError` | 413 |
+| `UnsupportedAudioError` | 415 |
+| `NothingHeardError` | 422 |
+| `RateLimitError`, and `QuotaExceededError` for `quota_exceeded` | 429 |
+| `InternalServerError` | 5xx |
+| `APIConnectionError`, `APITimeoutError` | no answer |
+
+## Retries and timeouts
+
+The client retries network errors, `429 rate_limited` and `502`/`503`/`504` up to 3 times, waiting `Retry-After` or 1, 2, then 4 seconds. It never retries `quota_exceeded` or other `4xx`. The default timeout is 300 seconds, because the first request after a quiet spell is slower.
+
+```python
+client = Namu(timeout=120, max_retries=5)
+```
+
+## In a web app
+
+Keep the client on the server. With Flask, a route that speaks text for your app:
+
+```python
+from flask import Flask, request, Response
+from namu import Namu, NamuError
+
+app = Flask(__name__)
+client = Namu()
+
+@app.post("/speak")
+def speak():
+    # check your own user here before spending your allowance
+    text = request.json["text"]
+    try:
+        audio = client.speech(text, voice="nadia", format="mp3")
+    except NamuError as e:
+        return {"error": e.type}, e.status
+    return Response(audio, mimetype="audio/mpeg")
+```
+
+## Configuration
+
+| Argument | Environment | Default |
+| --- | --- | --- |
+| `api_key` | `NAMU_API_KEY` | none |
+| `base_url` | `NAMU_BASE_URL` | `https://api.namuai-lab.com` |
+| `timeout` | | 300 seconds |
+| `max_retries` | | 3 |
+| `session` | | a new `requests.Session` |
+
+Responses are dictionaries typed with `TypedDict` (`namu.types`), so your editor completes their fields.
+
+## Source
+
+The library is open source (Apache 2.0): [github.com/namu-ai-lab/namu-sdks](https://github.com/namu-ai-lab/namu-sdks/tree/main/python). Changes are listed in its changelog.

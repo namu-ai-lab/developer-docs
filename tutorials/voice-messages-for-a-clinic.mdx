@@ -1,0 +1,98 @@
+---
+title: "Voice reminders for a health centre"
+sidebarTitle: "Voice reminders for a clinic"
+description: "Spoken vaccination reminders built from parts, so the same sentence is never paid for twice."
+icon: "heart-pulse"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Voice reminders for a health centre" duration="10 min" />
+
+**You will build:** a reminder service for a health centre. Every evening it prepares, for each family with an appointment tomorrow, a short spoken reminder in the family's language: Hausa here, and Zarma once a native speaker has written its sentences. The fixed sentences are generated once and reused; only what changes (the child's name) is spoken each time.
+
+**You will need:** Python 3.9+, the [Python library](/sdks/python) (`pip install namu-ai`), and `NAMU_API_KEY` set. Joining audio files uses `ffmpeg`.
+
+## The idea
+
+A reminder is three parts:
+
+| Part | Hausa | Generated |
+| --- | --- | --- |
+| Greeting | *Ina kwana!* | once, ever |
+| The name | *Aisha* | once per name |
+| The message | *Kar ki manta, gobe da safe ki kawo jaririnki asibiti don allurar rigakafi.* | once, ever |
+
+A hundred reminders cost one greeting, one message and a hundred short names, not a hundred full sentences.
+
+<Steps>
+  <Step title="Speak each part once">
+    ```python reminders.py
+    import hashlib
+    import subprocess
+    from pathlib import Path
+
+    from namu import Namu
+
+    client = Namu()
+    CACHE = Path("cache"); CACHE.mkdir(exist_ok=True)
+    OUT = Path("reminders"); OUT.mkdir(exist_ok=True)
+
+    VOICES = {"ha": "nadia", "dje": "mouhamad"}
+    PARTS = {
+        "ha": {
+            "greeting": "Ina kwana!",
+            "message": "Kar ki manta, gobe da safe ki kawo jaririnki asibiti don allurar rigakafi.",
+        },
+        # Write the Zarma sentences with a native speaker and add them here before sending Zarma reminders.
+        "dje": {},
+    }
+
+    def spoken(text: str, language: str) -> Path:
+        """The audio for `text`, generated once and kept in the cache."""
+        voice = VOICES[language]
+        path = CACHE / (hashlib.sha256(f"{voice}:{language}:{text}".encode()).hexdigest()[:16] + ".wav")
+        if not path.exists():
+            path.write_bytes(client.speech(text, voice=voice, language=language, format="wav"))
+        return path
+
+    def reminder(name: str, language: str) -> Path:
+        parts = PARTS[language]
+        files = [spoken(parts["greeting"], language), spoken(name, language), spoken(parts["message"], language)]
+        out = OUT / f"{hashlib.sha256((name + language).encode()).hexdigest()[:12]}.ogg"
+        listing = CACHE / "list.txt"
+        listing.write_text("".join(f"file '{f.resolve()}'\n" for f in files))
+        # Join the parts and encode once as small Opus, ready for WhatsApp or a phone line.
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listing),
+                        "-c:a", "libopus", "-b:a", "24k", str(out)], check=True)
+        return out
+
+    if __name__ == "__main__":
+        for name in ["Aisha", "Hadiza", "Maryam"]:
+            print(reminder(name, "ha"))
+    ```
+
+    The parts are kept as WAV so they join cleanly; the finished reminder is encoded once as Opus.
+  </Step>
+
+  <Step title="Run it">
+    ```bash
+    python reminders.py
+    ```
+    Run it again tomorrow with new names: the greeting and the message come from the cache.
+  </Step>
+</Steps>
+
+## Before you send anything
+
+- **Have a native speaker listen** to every fixed sentence before it reaches families. Fix the text, not the audio.
+- **Say who is speaking.** Start with the health centre's name, and tell families the voice is generated.
+- **Get consent** for reminders, and make stopping them easy.
+- **Keep names out of logs.** Store what you need to send, nothing more.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Responsible use" icon="shield-check" href="/resources/responsible-use">What the API is, and is not, for</Card>
+  <Card title="Usage" icon="gauge" href="/guides/usage-and-rate-limits">Watch the month's allowance</Card>
+</CardGroup>

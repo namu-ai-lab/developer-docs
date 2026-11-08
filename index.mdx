@@ -1,0 +1,119 @@
+---
+title: "Build with Namu"
+sidebarTitle: "Overview"
+description: "Speech AI for the languages of the Sahel. Make your app listen, speak and translate in Hausa, Zarma and French."
+icon: "house"
+mode: "wide"
+---
+
+import { VideoCard } from "/snippets/video.jsx";
+
+<div className="namu-hero not-prose">
+  <div className="namu-hero-actions">
+    <a className="namu-btn namu-btn--ink" href="/quickstart">Quickstart</a>
+    <a className="namu-btn" href="https://www.namuai-lab.com/account/keys">Get an API key</a>
+    <a className="namu-btn" href="/api-reference/introduction">API reference</a>
+  </div>
+  <div className="namu-langs">
+    <span className="namu-chip">Hausa <code>ha</code></span>
+    <span className="namu-chip">Zarma <code>dje</code></span>
+    <span className="namu-chip">French <code>fr</code></span>
+  </div>
+</div>
+
+<CodeGroup>
+  ```bash curl
+  # Say "Welcome" in Hausa, with Nadia's voice
+  curl https://api.namuai-lab.com/v1/speech \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -d '{"text": "Sannu da zuwa!", "voice": "nadia"}' \
+    -o welcome.wav
+  ```
+
+  ```python Python
+  import os, requests
+
+  audio = requests.post(
+      "https://api.namuai-lab.com/v1/speech",
+      headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+      json={"text": "Sannu da zuwa!", "voice": "nadia"},
+  ).content
+  open("welcome.wav", "wb").write(audio)
+  ```
+
+  ```javascript JavaScript
+  const res = await fetch("https://api.namuai-lab.com/v1/speech", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: JSON.stringify({ text: "Sannu da zuwa!", voice: "nadia" }),
+  });
+  const audio = Buffer.from(await res.arrayBuffer());
+  ```
+</CodeGroup>
+
+<p className="namu-section-label">What you can build</p>
+
+<div className="namu-grid not-prose">
+  <a className="namu-tile" href="/capabilities/text-to-speech">
+    <span className="namu-tile-top"><span className="namu-tile-name">Text to speech</span><span className="namu-status">Beta</span></span>
+    <span className="namu-tile-text">Read messages, reminders and lessons aloud in Hausa, Zarma or French.</span>
+    <code>POST /v1/speech</code>
+  </a>
+  <a className="namu-tile" href="/capabilities/speech-to-text">
+    <span className="namu-tile-top"><span className="namu-tile-name">Speech to text</span><span className="namu-status">Beta</span></span>
+    <span className="namu-tile-text">Turn voice notes and recordings into text, including WhatsApp audio.</span>
+    <code>POST /v1/transcribe</code>
+  </a>
+  <a className="namu-tile" href="/capabilities/translation">
+    <span className="namu-tile-top"><span className="namu-tile-name">Translation</span><span className="namu-status">Beta</span></span>
+    <span className="namu-tile-text">Hausa to French and French to Hausa, from text or straight from speech.</span>
+    <code>POST /v1/translate</code>
+  </a>
+  <a className="namu-tile" href="/capabilities/voice-agent">
+    <span className="namu-tile-top"><span className="namu-tile-name">Voice agent</span><span className="namu-status namu-status--research">Research</span></span>
+    <span className="namu-tile-text">A spoken conversation in Hausa: it listens, answers and speaks the answer.</span>
+    <code>POST /v1/converse</code>
+  </a>
+</div>
+
+<p className="namu-section-label">Which endpoint should I use?</p>
+
+| You want to… | Endpoint | Model | Why |
+| --- | --- | --- | --- |
+| Read a message aloud | `/v1/speech` | `speech-synthesis` | Hausa, Zarma or French, in a voice you choose |
+| Turn a voice note into text | `/v1/transcribe` | `speech-recognition` | Accepts WhatsApp audio as it is |
+| Let Hausa and French speakers understand each other | `/v1/translate` | `translation` | Text or speech in, text and speech out, in one call |
+| Answer people by voice | `/v1/converse` | `voice-agent` | Hears, replies and speaks in Hausa (research preview) |
+
+<p className="namu-section-label">Start here</p>
+
+<CardGroup cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    A key, one request, a sentence spoken in Hausa. About five minutes.
+  </Card>
+  <Card title="Models" icon="layers" href="/models">
+    The four models, their languages, and what each one is ready for.
+  </Card>
+  <Card title="Voices and languages" icon="audio-lines" href="/voices-and-languages">
+    Listen to each voice before you choose one.
+  </Card>
+  <Card title="SDKs" icon="package" href="/sdks/overview">
+    Python, JavaScript, Android and iOS, with code you can paste and run today.
+  </Card>
+  <Card title="Building for weak networks" icon="wifi-low" href="/guides/weak-networks">
+    Small audio, fewer round trips, and what to do when the line drops.
+  </Card>
+  <Card title="Pricing and limits" icon="gauge" href="/pricing-and-limits">
+    30 free minutes a month during the beta, and the limits on each request.
+  </Card>
+</CardGroup>
+
+<p className="namu-section-label">Watch and learn</p>
+
+<div className="namu-video-grid">
+  <VideoCard title="Your first call in five minutes" duration="5 min" level="Beginner" href="/tutorials/first-call" />
+  <VideoCard title="Transcribe a WhatsApp voice note" duration="6 min" level="Beginner" href="/tutorials/transcribe-a-voice-note" />
+  <VideoCard title="Build a Hausa ⇄ French interpreter" duration="12 min" level="Intermediate" href="/tutorials/hausa-french-interpreter" />
+</div>
+
+[All tutorials →](/tutorials/index)

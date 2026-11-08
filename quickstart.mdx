@@ -1,0 +1,159 @@
+---
+title: "Quickstart"
+description: "Create a key, make your first request, and hear a sentence spoken in Hausa."
+icon: "rocket"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Your first call in five minutes" duration="5 min" />
+
+The Namu API is a plain HTTPS API: every request is a `POST` or a `GET` to `https://api.namuai-lab.com/v1/...` with your key in the `Authorization` header. Anything that can send HTTP can use it.
+
+<Steps>
+  <Step title="Create an API key">
+    Sign in to the [Namu console](https://www.namuai-lab.com/account/keys) and open **API keys**. Create a key, give it a name you will recognise, and copy it. It starts with `namu_sk_` and is shown **once**.
+
+    <Warning>
+      Your key is a password. Keep it on your server: never put it in a mobile app, a web page or a public repository. Anyone holding it can spend your allowance.
+    </Warning>
+  </Step>
+
+  <Step title="Save the key as an environment variable">
+    Your code reads the key from the environment, so it never sits in a file you might share.
+
+    <CodeGroup>
+      ```bash macOS and Linux
+      export NAMU_API_KEY="namu_sk_..."
+      ```
+
+      ```powershell Windows (PowerShell)
+      setx NAMU_API_KEY "namu_sk_..."
+      ```
+    </CodeGroup>
+
+    On Windows, open a new terminal afterwards so it sees the variable.
+  </Step>
+
+  <Step title="Make your first request">
+    Ask Nadia to say *"Sannu da zuwa! Muna farin cikin jin muryarku."* (Welcome! We are glad to hear your voice.)
+
+    <CodeGroup>
+      ```bash curl
+      curl https://api.namuai-lab.com/v1/speech \
+        -H "Authorization: Bearer $NAMU_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{"text": "Sannu da zuwa! Muna farin cikin jin muryarku.", "voice": "nadia"}' \
+        -o welcome.wav
+      ```
+
+      ```python Python
+      import os
+      import requests
+
+      response = requests.post(
+          "https://api.namuai-lab.com/v1/speech",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          json={"text": "Sannu da zuwa! Muna farin cikin jin muryarku.", "voice": "nadia"},
+          timeout=120,
+      )
+      response.raise_for_status()
+
+      with open("welcome.wav", "wb") as f:
+          f.write(response.content)
+      print("Saved", response.headers["X-Audio-Seconds"], "seconds of audio")
+      ```
+
+      ```javascript JavaScript
+      import { writeFile } from "node:fs/promises";
+
+      const response = await fetch("https://api.namuai-lab.com/v1/speech", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.NAMU_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: "Sannu da zuwa! Muna farin cikin jin muryarku.", voice: "nadia" }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error.message);
+
+      await writeFile("welcome.wav", Buffer.from(await response.arrayBuffer()));
+      console.log("Saved", response.headers.get("X-Audio-Seconds"), "seconds of audio");
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Play it">
+    Open `welcome.wav`. That is your app speaking Hausa. The first request after a quiet spell can take a little longer while the model wakes up; the next ones are faster.
+  </Step>
+</Steps>
+
+## Now let it listen
+
+Send the file you just made back to the API and read what it heard:
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/transcribe \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@welcome.wav \
+    -F language=ha
+  ```
+
+  ```python Python
+  with open("welcome.wav", "rb") as audio:
+      response = requests.post(
+          "https://api.namuai-lab.com/v1/transcribe",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          files={"file": audio},
+          data={"language": "ha"},
+          timeout=120,
+      )
+  print(response.json()["text"])
+  ```
+
+  ```javascript JavaScript
+  import { readFile } from "node:fs/promises";
+
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("welcome.wav")]), "welcome.wav");
+  form.append("language", "ha");
+
+  const heard = await fetch("https://api.namuai-lab.com/v1/transcribe", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: form,
+  }).then((r) => r.json());
+  console.log(heard.text);
+  ```
+</CodeGroup>
+
+```json Response
+{
+  "model": "speech-recognition",
+  "text": "sannu da zuwa muna farin cikin jin muryarku",
+  "language": "ha",
+  "audio_seconds": 3.1
+}
+```
+
+<Note>
+  Transcripts are written in lower case, without punctuation. Add your own if your screen needs it.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Choose a voice" icon="audio-lines" href="/voices-and-languages">
+    Nadia in Hausa, Mouhamad in Zarma and Hausa, and the French voice.
+  </Card>
+  <Card title="Translate" icon="languages" href="/capabilities/translation">
+    Hausa to French and back, from text or from speech.
+  </Card>
+  <Card title="Use an SDK" icon="package" href="/sdks/overview">
+    A small Python or JavaScript client you can paste into your project.
+  </Card>
+  <Card title="Watch your usage" icon="gauge" href="/guides/usage-and-rate-limits">
+    How each request is counted against your 30 free minutes.
+  </Card>
+</CardGroup>

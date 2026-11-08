@@ -1,0 +1,154 @@
+---
+title: "Android (Kotlin)"
+sidebarTitle: "Android"
+description: "Record a voice note, have it transcribed, and play speech back, with the key safe on your server."
+icon: "smartphone"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Voice in an Android app" duration="10 min" />
+
+Most people who will use your app carry an Android phone. This page builds the two halves of a voice feature: a small server route that holds your key, and the Kotlin code that records, uploads and plays.
+
+```text
+Android app  ──(your login)──►  your server  ──(NAMU_API_KEY)──►  api.namuai-lab.com
+```
+
+<Warning>
+  Never put your Namu key in the app. An APK can be unpacked in minutes, and the key would let anyone spend your allowance.
+</Warning>
+
+## 1. The server route
+
+Any server works. Two routes in Python with Flask and the [Python library](/sdks/python) (`pip install namu-ai`):
+
+```python server.py
+from flask import Flask, request, Response
+from namu import Namu, NamuError
+
+app = Flask(__name__)
+namu = Namu()
+
+@app.post("/api/transcribe")
+def transcribe():
+    # 1. check your own user (session, token...) here
+    audio = request.files["file"].read()
+    try:
+        result = namu.transcribe(audio, language=request.form.get("language", "ha"))
+    except NamuError as e:
+        return {"error": e.type}, e.status
+    return {"text": result["text"]}
+
+@app.post("/api/speak")
+def speak():
+    try:
+        audio = namu.speech(request.json["text"], voice=request.json.get("voice", "nadia"), format="mp3")
+    except NamuError as e:
+        return {"error": e.type}, e.status
+    return Response(audio, mimetype="audio/mpeg")
+```
+
+## 2. Record a voice note
+
+`MediaRecorder` writes AAC in an M4A file: small, and read by the API as it is. Ask for the microphone permission first (`android.permission.RECORD_AUDIO`).
+
+```kotlin Recorder.kt
+import android.content.Context
+import android.media.MediaRecorder
+import java.io.File
+
+class Recorder(private val context: Context) {
+    private var recorder: MediaRecorder? = null
+    val file: File get() = File(context.cacheDir, "note.m4a")
+
+    fun start() {
+        recorder = MediaRecorder(context).apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioChannels(1)          // mono: half the bytes, same words
+            setAudioSamplingRate(16_000)
+            setAudioEncodingBitRate(32_000)
+            setOutputFile(file.absolutePath)
+            prepare()
+            start()
+        }
+    }
+
+    fun stop() {
+        recorder?.apply { stop(); release() }
+        recorder = null
+    }
+}
+```
+
+`MediaRecorder(context)` needs Android 12 (API 31); on older versions use `MediaRecorder()`.
+
+## 3. Send it and read the text
+
+With OkHttp (`com.squareup.okhttp3:okhttp`). Run it off the main thread, in a coroutine:
+
+```kotlin VoiceApi.kt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.File
+import java.util.concurrent.TimeUnit
+
+class VoiceApi(private val baseUrl: String, private val token: String) {
+    // Generous timeouts: mobile networks are slow, and a model waking up can take a minute.
+    private val http = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(5, TimeUnit.MINUTES)
+        .writeTimeout(2, TimeUnit.MINUTES)
+        .build()
+
+    suspend fun transcribe(note: File, language: String = "ha"): String = withContext(Dispatchers.IO) {
+        val body = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("file", note.name, note.asRequestBody("audio/mp4".toMediaType()))
+            .addFormDataPart("language", language)
+            .build()
+        val request = Request.Builder().url("$baseUrl/api/transcribe")
+            .header("Authorization", "Bearer $token")   // your user's token, not the Namu key
+            .post(body).build()
+        http.newCall(request).execute().use { response ->
+            val json = JSONObject(response.body!!.string())
+            if (!response.isSuccessful) error(json.optString("error", "failed"))
+            json.getString("text")
+        }
+    }
+
+    suspend fun speak(text: String, into: File): File = withContext(Dispatchers.IO) {
+        val body = JSONObject(mapOf("text" to text, "voice" to "nadia")).toString()
+            .toRequestBody("application/json".toMediaType())
+        val request = Request.Builder().url("$baseUrl/api/speak")
+            .header("Authorization", "Bearer $token").post(body).build()
+        http.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) error("speak failed: ${response.code}")
+            into.outputStream().use { response.body!!.byteStream().copyTo(it) }
+        }
+        into
+    }
+}
+```
+
+## 4. Play the answer
+
+```kotlin
+val reply = api.speak("Na gode! Mun karɓi saƙonku.", File(cacheDir, "reply.mp3"))
+MediaPlayer().apply {
+    setDataSource(reply.absolutePath)
+    setOnCompletionListener { release() }
+    prepare()
+    start()
+}
+```
+
+Keep `note.m4a` until the transcription succeeds: if the network drops, retry from the file instead of asking the person to speak again. More habits in [building for weak networks](/guides/weak-networks).

@@ -1,0 +1,61 @@
+---
+title: "Voices and languages"
+description: "Listen to each voice, then pick the one that fits the people who will hear it."
+icon: "audio-lines"
+---
+
+import { VoiceGallery } from "/snippets/voices.jsx";
+
+`/v1/speech` speaks with one of these voices. Each recording below was made through the API. Press play to hear it: nothing downloads until you do.
+
+<VoiceGallery />
+
+| Voice | `voice` | Languages | Notes |
+| --- | --- | --- | --- |
+| Nadia | `nadia` | Hausa | The default. Female, warm and patient. |
+| Nadia | `warm` | Hausa | Another name for `nadia`. |
+| Mouhamad | `mouhamad` | Zarma, Hausa | Male. Speaks Zarma unless you send `"language": "ha"`. |
+| French | `fr` | French | The French reference voice. |
+
+Every voice is used with its speaker's consent. The API does not offer voice cloning, and a voice whose consent could not be confirmed was withdrawn: a request that names it gets `400 unknown_voice`, never another voice in its place.
+
+## Choosing the language
+
+A voice speaks its first language unless you say otherwise. To make Mouhamad speak Hausa:
+
+```json
+{ "text": "Sannu! Yaya kuke?", "voice": "mouhamad", "language": "ha" }
+```
+
+Asking a voice for a language it does not speak returns `400 unsupported_language`, with the languages it does speak in the message.
+
+## Languages
+
+| Language | Code | Where people speak it | Speech to text | Text to speech | Translation |
+| --- | --- | --- | :---: | :---: | :---: |
+| Hausa | `ha` | Niger, Nigeria and across West Africa | ✓ | ✓ | ✓ (with French) |
+| Zarma | `dje` | Western Niger, along the river | ✓ | ✓ | |
+| French | `fr` | Niger's official language, and beyond | ✓ | ✓ | ✓ (with Hausa) |
+
+<Info>
+  Fulfulde and Tamasheq are part of the Lab's research, not of the API yet. We add a language to the API when we can measure that it works.
+</Info>
+
+## Get the list in code
+
+```bash
+curl https://api.namuai-lab.com/v1/voices
+```
+
+```json
+{
+  "data": [
+    { "id": "nadia", "languages": ["ha"], "language": "ha", "description": "Warm and patient (female)" },
+    { "id": "warm", "languages": ["ha"], "language": "ha", "description": "Alias of nadia" },
+    { "id": "fr", "languages": ["fr"], "language": "fr", "description": "French reference voice" },
+    { "id": "mouhamad", "languages": ["dje", "ha"], "language": "dje", "description": "Male; Zarma and Hausa" }
+  ]
+}
+```
+
+No key is needed. Read it when your app starts if you show a voice picker, so a new voice appears without an update.

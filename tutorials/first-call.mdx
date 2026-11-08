@@ -1,0 +1,60 @@
+---
+title: "Your first call in five minutes"
+sidebarTitle: "Your first call"
+description: "Create a key, send one request, and hear your app speak Hausa."
+icon: "rocket"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Your first call in five minutes" duration="5 min" />
+
+**You will need:** a computer with a terminal, and five minutes. Nothing to install: `curl` is already on macOS, Linux and Windows 10 and later.
+
+<Steps>
+  <Step title="Sign up and create a key">
+    Go to [namuai-lab.com/account/keys](https://www.namuai-lab.com/account/keys), create an account, then **Create new secret key**. Copy the key: it is shown once.
+  </Step>
+  <Step title="Put the key in your terminal">
+    ```bash
+    export NAMU_API_KEY="namu_sk_..."
+    ```
+    On Windows PowerShell: `$env:NAMU_API_KEY = "namu_sk_..."`
+  </Step>
+  <Step title="Ask Nadia to speak">
+    ```bash
+    curl https://api.namuai-lab.com/v1/speech \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"text": "Sannu da zuwa! Muna farin cikin jin muryarku.", "voice": "nadia", "format": "mp3"}' \
+      -o welcome.mp3
+    ```
+    The first request after a quiet spell can take up to a minute. The next one is quicker.
+  </Step>
+  <Step title="Listen">
+    Open `welcome.mp3`: *"Welcome! We are glad to hear your voice."* Then try Zarma:
+
+    ```bash
+    curl https://api.namuai-lab.com/v1/speech \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"text": "Fofo! Mate ni go?", "voice": "mouhamad", "format": "mp3"}' \
+      -o fofo.mp3
+    ```
+  </Step>
+</Steps>
+
+## If something goes wrong
+
+| You see | Do this |
+| --- | --- |
+| `missing_api_key` | The `export` did not reach this terminal. Run it again in the same window. |
+| `invalid_api_key` | The key was copied in part. Copy it again, or create a new one. |
+| The file will not play | Open it in a text editor: if it starts with `{"error"`, the message says why. |
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="book-open" href="/quickstart">The same, in Python and JavaScript</Card>
+  <Card title="Read messages aloud" icon="circle-play" href="/tutorials/read-aloud-in-hausa">Next tutorial</Card>
+</CardGroup>

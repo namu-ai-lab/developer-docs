@@ -1,0 +1,172 @@
+---
+title: "Translation"
+description: "Hausa to French and French to Hausa, from text or straight from speech, with the translation spoken if you want it."
+icon: "languages"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Translate between Hausa and French" duration="6 min" />
+
+## Overview
+
+`POST /v1/translate` translates between **Hausa and French**, in both directions. It takes text or a recording, and can also return the translation spoken aloud, so one request turns a Hausa voice note into French audio.
+
+- **Model:** `translation` (beta)
+- **Directions:** `ha → fr` and `fr → ha`
+- **Input:** JSON text (up to 2,000 characters), or audio like [speech to text](/capabilities/speech-to-text#supported-audio)
+- **Counts:** text: characters ÷ 15 as seconds; audio: the length you send; plus the spoken translation if you ask for it
+
+<Note>
+  The translation is written by **Google Gemini through OpenRouter**, which receives the text to translate (and, for spoken French, the recording, to write it down). Tell your users if their messages leave for a third party. Speech to text and text to speech run on Namu's own models.
+</Note>
+
+## Translate text
+
+Send JSON. `target` is the language you want; `source` is the other one unless you say otherwise.
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/translate \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Ina kwana? Yau za a yi zafi sosai.", "source": "ha", "target": "fr"}'
+  ```
+
+  ```python Python
+  import os
+  import requests
+
+  response = requests.post(
+      "https://api.namuai-lab.com/v1/translate",
+      headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+      json={"text": "Ina kwana? Yau za a yi zafi sosai.", "source": "ha", "target": "fr"},
+      timeout=120,
+  )
+  print(response.json()["text"])
+  ```
+
+  ```javascript JavaScript
+  const response = await fetch("https://api.namuai-lab.com/v1/translate", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.NAMU_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text: "Ina kwana? Yau za a yi zafi sosai.", source: "ha", target: "fr" }),
+  });
+  const { text } = await response.json();
+  ```
+</CodeGroup>
+
+```json Response
+{
+  "model": "translation",
+  "source": "ha",
+  "target": "fr",
+  "source_text": "Ina kwana? Yau za a yi zafi sosai.",
+  "text": "Bonjour ! Il va faire très chaud aujourd'hui.",
+  "characters": 34,
+  "audio": null
+}
+```
+
+<Note>The translations shown in these docs illustrate the shape of the response. Your results will vary with the text.</Note>
+
+## Translate speech
+
+Send the recording as `file`. The API writes down what was said (`source_text`), then translates it (`text`):
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/translate \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@question.ogg \
+    -F source=ha \
+    -F target=fr
+  ```
+
+  ```python Python
+  with open("question.ogg", "rb") as audio:
+      response = requests.post(
+          "https://api.namuai-lab.com/v1/translate",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          files={"file": audio},
+          data={"source": "ha", "target": "fr"},
+          timeout=300,
+      )
+  result = response.json()
+  print(result["source_text"], "→", result["text"])
+  ```
+
+  ```javascript JavaScript
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("question.ogg")]), "question.ogg");
+  form.append("source", "ha");
+  form.append("target", "fr");
+
+  const result = await fetch("https://api.namuai-lab.com/v1/translate", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: form,
+  }).then((r) => r.json());
+  ```
+</CodeGroup>
+
+If no speech is found in the recording, the answer is `422 nothing_heard`.
+
+## Get the translation spoken
+
+Add `include_audio` and the answer carries an `audio` field: the translation spoken, as base64 WAV (24 kHz, mono). With JSON, put it in the body; with audio, as a form field or query parameter.
+
+```json
+{ "text": "Bonjour, comment allez-vous ?", "source": "fr", "target": "ha", "include_audio": true }
+```
+
+```python Python
+import base64
+
+audio = base64.b64decode(response.json()["audio"])
+open("translation.wav", "wb").write(audio)
+```
+
+## Request
+
+<ParamField body="text" type="string">
+  Text to translate, up to 2,000 characters. Send this **or** `file`.
+</ParamField>
+
+<ParamField body="file" type="file">
+  A recording to translate. Send this **or** `text`.
+</ParamField>
+
+<ParamField body="target" type="string" default="fr">
+  The language to translate into: `ha` or `fr`.
+</ParamField>
+
+<ParamField body="source" type="string">
+  The language of the input: `ha` or `fr`. Defaults to the language that is not `target`.
+</ParamField>
+
+<ParamField body="include_audio" type="boolean" default="false">
+  Also return the translation spoken, as base64 WAV.
+</ParamField>
+
+## Best practices
+
+- **Translate whole sentences.** The model uses the sentence around a word to choose its meaning; fragments lose that.
+- **Show both texts when it matters.** `source_text` lets a reader check what was understood before trusting the translation.
+- **Keep a person in the loop for high stakes.** Medical, legal and financial messages deserve a human check before they reach people.
+
+## Limits
+
+- Hausa and French only. Zarma ⇄ French is not in the API yet (`400 unsupported_pair`).
+- 2,000 characters of text, or 25 MB and 5 minutes of audio, per request.
+
+## Related
+
+<CardGroup cols={3}>
+  <Card title="Build an interpreter" icon="circle-play" href="/tutorials/hausa-french-interpreter">Tutorial</Card>
+  <Card title="Speech to text" icon="mic" href="/capabilities/speech-to-text">The same audio rules</Card>
+  <Card title="API reference" icon="square-terminal" href="/api-reference/translation/create-translation">POST /v1/translate</Card>
+</CardGroup>

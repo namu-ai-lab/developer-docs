@@ -1,0 +1,38 @@
+---
+title: "Authentication"
+description: "Send your secret key as a bearer token."
+icon: "key-round"
+---
+
+The Namu API uses secret keys. Send yours in the `Authorization` header of every request that does work:
+
+```bash
+curl https://api.namuai-lab.com/v1/usage \
+  -H "Authorization: Bearer $NAMU_API_KEY"
+```
+
+Create and revoke keys in the [console](https://www.namuai-lab.com/account/keys). Keys start with `namu_sk_`.
+
+| Endpoint | Key | Scope |
+| --- | :---: | --- |
+| `POST /v1/speech` | ✓ | `speech` |
+| `POST /v1/transcribe` | ✓ | `transcribe` |
+| `POST /v1/translate` | ✓ | `translate` |
+| `POST /v1/converse` | ✓ | `converse` (not on new keys by default) |
+| `GET /v1/usage` | ✓ | any |
+| `GET /v1/models`, `/v1/voices`, `/v1/health` | | |
+
+## When a key is refused
+
+| Status | `type` | Why |
+| --- | --- | --- |
+| `401` | `missing_api_key` | No `Authorization: Bearer` header |
+| `401` | `invalid_api_key` | Not a Namu key, or a key we do not know |
+| `401` | `key_revoked` | Revoked in the console (takes effect within about 30 seconds) |
+| `403` | `insufficient_scope` | The key does not have this endpoint's scope |
+| `403` | `account_paused` | The account is paused |
+| `429` | `rate_limited` | Too many unknown keys from your address |
+
+<Warning>
+  Keep keys on your server. Never ship them in mobile apps or browser code. See [API keys](/guides/api-keys#keep-keys-secret).
+</Warning>

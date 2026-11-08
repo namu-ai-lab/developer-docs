@@ -1,0 +1,57 @@
+---
+title: "Glossary"
+description: "The words these docs use, in one place."
+icon: "book-a"
+---
+
+<ResponseField name="Allowance">
+  The audio seconds an account may use each month: 1,800 (30 minutes) during the beta. Resets on the 1st, UTC.
+</ResponseField>
+
+<ResponseField name="Audio seconds">
+  The unit everything is counted in: the length of audio sent or returned. Text translation counts characters ÷ 15.
+</ResponseField>
+
+<ResponseField name="API key">
+  A secret starting with `namu_sk_` that identifies your account. Kept on your server, sent as `Authorization: Bearer`.
+</ResponseField>
+
+<ResponseField name="Beta">
+  Ready to build on with real users while quality keeps improving. Changes that could break you are announced in the changelog.
+</ResponseField>
+
+<ResponseField name="Language code">
+  `ha` Hausa, `dje` Zarma, `fr` French: the ISO 639 codes the API uses.
+</ResponseField>
+
+<ResponseField name="Opus">
+  A compact audio format for speech. The API returns it with `"format": "opus"` (Ogg Opus) and reads it in voice notes.
+</ResponseField>
+
+<ResponseField name="Persona">
+  Who answers in the voice agent. `nadia` is the only one.
+</ResponseField>
+
+<ResponseField name="Quota exceeded">
+  `429 quota_exceeded`: the month's allowance is used. Different from `rate_limited`, which passes after a few seconds.
+</ResponseField>
+
+<ResponseField name="Rate limit">
+  Requests per minute per key: 60 by default. Passing it returns `429 rate_limited` with `Retry-After`.
+</ResponseField>
+
+<ResponseField name="Request id">
+  A unique id for every response, in `X-Request-Id` and in error bodies. Send it to us when something goes wrong.
+</ResponseField>
+
+<ResponseField name="Research">
+  A preview of work in progress, such as the voice agent. It can change without notice.
+</ResponseField>
+
+<ResponseField name="Scope">
+  What a key may call: `transcribe`, `speech`, `translate`, `converse`. New keys get all but `converse`.
+</ResponseField>
+
+<ResponseField name="Voice">
+  Who speaks in `/v1/speech`: `nadia` (or `warm`), `mouhamad`, `fr`. Each is used with its speaker's consent.
+</ResponseField>

@@ -1,0 +1,144 @@
+---
+title: "Speech to text"
+description: "Turn recordings and voice notes into text, in Hausa, Zarma or French."
+icon: "mic"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Speech to text: from a voice note to text" duration="5 min" />
+
+## Overview
+
+`POST /v1/transcribe` takes a recording and returns what was said, as text. People in the Sahel send voice notes far more than they type: transcription lets your app read them, search them, file them or reply to them.
+
+- **Model:** `speech-recognition` (beta)
+- **Languages:** Hausa `ha` (default), Zarma `dje`, French `fr`
+- **Input:** WAV, MP3, M4A/AAC, OGG/Opus, WebM or FLAC; up to 25 MB and 5 minutes
+- **Counts:** the length of the audio you send
+
+## Quickstart
+
+Send the file as a multipart field named `file`, with the language beside it:
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/transcribe \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@voice-note.ogg \
+    -F language=ha
+  ```
+
+  ```python Python
+  import os
+  import requests
+
+  with open("voice-note.ogg", "rb") as audio:
+      response = requests.post(
+          "https://api.namuai-lab.com/v1/transcribe",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          files={"file": audio},
+          data={"language": "ha"},
+          timeout=300,
+      )
+  response.raise_for_status()
+  print(response.json()["text"])
+  ```
+
+  ```javascript JavaScript
+  import { readFile } from "node:fs/promises";
+
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("voice-note.ogg")]), "voice-note.ogg");
+  form.append("language", "ha");
+
+  const response = await fetch("https://api.namuai-lab.com/v1/transcribe", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: form,
+  });
+  const { text } = await response.json();
+  ```
+</CodeGroup>
+
+```json Response
+{
+  "model": "speech-recognition",
+  "text": "sannu da zuwa",
+  "language": "ha",
+  "audio_seconds": 2.0
+}
+```
+
+### Sending the audio as the body
+
+If your recording is already in memory, you can send the bytes as the whole request body and put `language` in the query string. Useful from a phone, where building a multipart form is extra work:
+
+```bash
+curl "https://api.namuai-lab.com/v1/transcribe?language=dje" \
+  -H "Authorization: Bearer $NAMU_API_KEY" \
+  --data-binary @message.m4a
+```
+
+## Request
+
+<ParamField body="file" type="file" required>
+  The recording. The API recognises the container from the file itself, so the file name and content type do not matter.
+</ParamField>
+
+<ParamField body="language" type="string" default="ha">
+  The language spoken: `ha`, `dje` or `fr`. The model does not detect it: send the language you expect.
+</ParamField>
+
+## Supported audio
+
+| Format | Typical source |
+| --- | --- |
+| OGG / Opus | WhatsApp and Telegram voice notes, Android recorders |
+| M4A / AAC / MP4 / 3GP | iPhone voice memos, many Android phones |
+| MP3 | Radio clips, downloads |
+| WAV | Studio and computer recordings |
+| WebM | Recordings made in a web browser (`MediaRecorder`) |
+| FLAC | Archives |
+
+A file the API cannot read returns `415 unsupported_audio`. More in [audio formats](/guides/audio-formats).
+
+## Reading the result
+
+- `text` is in lower case, without punctuation. Add capital letters and full stops yourself if you show it to people.
+- `audio_seconds` is the length of what you sent, which is what was counted.
+- An empty recording returns `400 empty_audio`.
+
+## Best practices
+
+<AccordionGroup>
+  <Accordion title="Record close to the speaker" icon="mic">
+    Most errors come from distance and noise, not language. A phone held near the mouth, out of the wind, gives far better text than one on a table across the room.
+  </Accordion>
+  <Accordion title="Send the language people actually speak" icon="languages">
+    If a user picked Zarma in your app, send `dje`. For mixed Hausa and French speech, send the language most of it is in.
+  </Accordion>
+  <Accordion title="Do not convert before sending" icon="file-music">
+    Send the voice note as it is. Converting an OGG to WAV first makes the upload about ten times larger and does not improve the text.
+  </Accordion>
+  <Accordion title="Cut long recordings" icon="scissors">
+    Up to 5 minutes per request. For a longer meeting or programme, cut it at silences into pieces under 5 minutes and send them in order. See [long recordings](/guides/audio-formats#long-recordings).
+  </Accordion>
+  <Accordion title="Check what matters" icon="shield-check">
+    Transcripts can be wrong, especially for names, numbers and noisy audio. When the text drives a decision (a dose, an amount, an address), show it back to the person or have someone check it.
+  </Accordion>
+</AccordionGroup>
+
+## Limits
+
+- 25 MB and 300 seconds per file (`413 payload_too_large`, `413 audio_too_long`).
+- One language per request; no automatic language detection.
+- No timestamps or speaker labels yet.
+
+## Related
+
+<CardGroup cols={3}>
+  <Card title="Transcribe a voice note" icon="circle-play" href="/tutorials/transcribe-a-voice-note">Tutorial</Card>
+  <Card title="Translation" icon="languages" href="/capabilities/translation">Speech straight to French or Hausa</Card>
+  <Card title="API reference" icon="square-terminal" href="/api-reference/transcription/create-transcription">POST /v1/transcribe</Card>
+</CardGroup>

@@ -1,0 +1,114 @@
+---
+title: "Errors"
+description: "Every error has the same shape, a stable code to branch on, and a request id to send us."
+icon: "triangle-alert"
+---
+
+When a request fails, the API answers with an HTTP status and this body:
+
+```json
+{
+  "error": {
+    "type": "unknown_voice",
+    "message": "Unknown voice. Try one of: nadia, warm, fr, mouhamad.",
+    "request_id": "3f2a9c1e5b7d4e8fa0c2b6d9e1f3a5c7"
+  }
+}
+```
+
+- **`type`** is stable: branch on it in your code.
+- **`message`** is written for a developer. It can change, so do not parse it, and do not show it to your users as is.
+- **`request_id`** is also in the `X-Request-Id` header of every response, successful or not. Include it when you [write to us](/resources/support).
+
+## What to do with each status
+
+| Status | Meaning | Retry? |
+| --- | --- | --- |
+| `400` | The request is not usable as sent | No: fix the request |
+| `401` | No key, not a Namu key, or a revoked key | No: fix the key |
+| `403` | The key may not do this, or the account is paused | No |
+| `404` / `405` | No such endpoint, or wrong method | No |
+| `413` | Too large: file, audio length or text | No: make it smaller |
+| `415` | The audio could not be read | No: send another format |
+| `422` | No speech was found in the audio | Ask the person to speak again |
+| `429` | Rate limit or monthly allowance reached | `rate_limited`: yes, after `Retry-After`. `quota_exceeded`: no |
+| `500`, `502`, `503`, `504` | Something failed on our side | Yes, with a pause |
+
+A request that fails counts nothing against your allowance.
+
+## Every code
+
+<AccordionGroup>
+  <Accordion title="400 · the request" icon="circle-x">
+    | `type` | When |
+    | --- | --- |
+    | `invalid_request` | The body could not be read, or does not have the shape this endpoint takes. Also an unknown `format`. |
+    | `invalid_json` | The body is not JSON where JSON is expected. |
+    | `missing_text` | `text` is missing or empty. |
+    | `missing_file` | No multipart field named `file`. |
+    | `empty_audio` | The audio file is empty. |
+    | `unknown_voice` | No such voice. The message lists the voices. |
+    | `unsupported_language` | The endpoint, or the voice, does not speak that language. |
+    | `unsupported_pair` | Translation is between Hausa and French only. |
+    | `unknown_persona` | The voice agent's only persona is `nadia`. |
+  </Accordion>
+  <Accordion title="401 and 403 · the key" icon="key-round">
+    | `type` | When |
+    | --- | --- |
+    | `missing_api_key` | No `Authorization: Bearer` header. |
+    | `invalid_api_key` | Not a Namu key, or a key we do not know. |
+    | `key_revoked` | The key was revoked in the console. |
+    | `insufficient_scope` | The key lacks this endpoint's scope. See [scopes](/guides/api-keys#scopes). |
+    | `account_paused` | The account is paused. Write to contact@namuai.org. |
+  </Accordion>
+  <Accordion title="413, 415, 422 · the content" icon="file-music">
+    | `type` | When |
+    | --- | --- |
+    | `payload_too_large` | The audio is over 25 MB. |
+    | `audio_too_long` | The audio is over 300 seconds. |
+    | `text_too_long` | The text is over 2,000 characters. |
+    | `unsupported_audio` | The file is not audio we can read. Send WAV, MP3, M4A, AAC, OGG, WebM or FLAC. |
+    | `nothing_heard` | No speech in the recording (translation and voice agent). |
+  </Accordion>
+  <Accordion title="429 · limits" icon="gauge">
+    | `type` | When |
+    | --- | --- |
+    | `rate_limited` | Too many requests this minute for this key, or too many unknown keys from your address. Wait `Retry-After` seconds. |
+    | `quota_exceeded` | This month's allowance is used. It comes back on the 1st (UTC). |
+  </Accordion>
+  <Accordion title="5xx · our side" icon="server">
+    | `type` | When |
+    | --- | --- |
+    | `internal_error` | An unexpected error in the API. |
+    | `encode_failed` | The audio could not be encoded in the format you asked for. |
+    | `upstream_error` | The model did not answer as expected. |
+    | `auth_unavailable` | We could not check your key just now. |
+    | `upstream_timeout` | The model took too long. |
+  </Accordion>
+</AccordionGroup>
+
+## Handling errors in code
+
+<CodeGroup>
+  ```python Python
+  response = requests.post(url, headers=headers, json=body, timeout=300)
+  if not response.ok:
+      error = response.json()["error"]
+      if error["type"] == "quota_exceeded":
+          tell_user("Voice is resting until next month.")
+      elif response.status_code in (429, 502, 503, 504):
+          retry_later(error["request_id"])
+      else:
+          log.error("Namu API %s: %s (%s)", error["type"], error["message"], error["request_id"])
+  ```
+
+  ```javascript JavaScript
+  const response = await fetch(url, { method: "POST", headers, body });
+  if (!response.ok) {
+    const { error } = await response.json();
+    if (error.type === "quota_exceeded") showMessage("Voice is resting until next month.");
+    else if ([429, 502, 503, 504].includes(response.status)) retryLater(error.request_id);
+    else console.error(`Namu API ${error.type}: ${error.message} (${error.request_id})`);
+  }
+  ```
+</CodeGroup>

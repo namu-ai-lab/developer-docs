@@ -1,0 +1,48 @@
+---
+title: "Pricing and limits"
+description: "Free during the beta: 30 minutes of audio a month for every account. Here is how it is counted, and the limits on each request."
+icon: "gauge"
+---
+
+## Free during the beta
+
+Every account gets **1,800 seconds (30 minutes) of audio a month**, free. The count starts again on the first day of each month (UTC). There is no card to enter and no paid plan yet. If you need more for a pilot, [write to us](/resources/support) with what you are building.
+
+## What counts
+
+Usage is counted in **seconds of audio**, the same unit for every endpoint:
+
+| Request | What it counts |
+| --- | --- |
+| `POST /v1/transcribe` | the length of the audio you send |
+| `POST /v1/speech` | the length of the audio you get back |
+| `POST /v1/translate` with audio | the length of the audio you send |
+| `POST /v1/translate` with text | the number of characters ÷ 15, plus the spoken translation if you ask for it |
+| `POST /v1/converse` | the audio you send plus the spoken reply |
+| `GET` requests | nothing |
+
+**A request that fails counts nothing.** The allowance is checked before each request, so the last request of a month can take you a little past it.
+
+See where you stand in the [console](https://www.namuai-lab.com/account/usage), or in code with [`GET /v1/usage`](/api-reference/account/get-usage):
+
+```json
+{ "month_audio_seconds_used": 312.4, "month_audio_seconds_limit": 1800.0 }
+```
+
+When the month's allowance is used, requests return `429 quota_exceeded` until the next month.
+
+## Limits on each request
+
+| Limit | Value | Error when passed |
+| --- | --- | --- |
+| Audio file size | 25 MB | `413 payload_too_large` |
+| Audio length | 300 seconds (5 minutes) | `413 audio_too_long` |
+| Text length | 2,000 characters | `413 text_too_long` |
+| Requests per key | 60 a minute by default | `429 rate_limited`, with `Retry-After` |
+| Active keys per account | 10 | shown in the console |
+
+Every request counts toward the per-minute limit, including one that is refused for a bad body. For longer recordings, cut them into pieces under five minutes ([how](/guides/audio-formats#long-recordings)).
+
+<Tip>
+  Need a higher rate limit for a launch or a pilot? We can raise it per key. [Ask us](/resources/support).
+</Tip>

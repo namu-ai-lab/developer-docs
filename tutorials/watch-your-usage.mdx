@@ -1,0 +1,52 @@
+---
+title: "Watch your usage"
+sidebarTitle: "Watch your usage"
+description: "A daily check that warns you before the month's allowance runs out."
+icon: "gauge"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Watch your usage" duration="4 min" />
+
+**You will build:** a small script that reads your usage, works out whether the allowance will last the month at the current pace, and warns you when it will not. Run it daily from cron, a scheduled job or a CI workflow.
+
+<Steps>
+  <Step title="The check">
+    ```python check_usage.py
+    import calendar
+    import sys
+    from datetime import datetime, timezone
+
+    from namu import Namu
+
+    usage = Namu().usage()
+    used, limit = usage["month_audio_seconds_used"], usage["month_audio_seconds_limit"]
+
+    now = datetime.now(timezone.utc)
+    days = calendar.monthrange(now.year, now.month)[1]
+    elapsed = (now.day - 1) + now.hour / 24 or 0.01
+    projected = used / elapsed * days
+
+    print(f"Used {used / 60:.1f} of {limit / 60:.0f} minutes; on pace for {projected / 60:.0f} this month.")
+    if used >= 0.8 * limit or projected > limit:
+        print("Warning: the allowance may run out before the 1st.")
+        sys.exit(1)   # a failing job is an easy alert in cron and CI
+    ```
+  </Step>
+
+  <Step title="Run it every morning">
+    ```bash crontab
+    0 7 * * * NAMU_API_KEY=namu_sk_... /usr/bin/python3 /srv/app/check_usage.py || /srv/app/notify.sh "Namu usage"
+    ```
+  </Step>
+</Steps>
+
+`/v1/usage` is free: it does not count against the allowance or the rate limit. It may lag by up to 30 seconds.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Usage and rate limits" icon="gauge" href="/guides/usage-and-rate-limits">How each request is counted</Card>
+  <Card title="Pricing and limits" icon="receipt" href="/pricing-and-limits">The beta allowance</Card>
+</CardGroup>

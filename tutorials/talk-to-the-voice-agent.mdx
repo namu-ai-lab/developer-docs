@@ -1,0 +1,69 @@
+---
+title: "Talk to the voice agent"
+sidebarTitle: "Talk to the voice agent"
+description: "A spoken conversation in Hausa from your terminal: record, send, listen, repeat."
+icon: "message-circle"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Talk to the voice agent" duration="7 min" />
+
+<Note>The voice agent is a research preview. Its answers can be wrong; use it to explore.</Note>
+
+**You will build:** a terminal loop. Press Enter, speak in Hausa for up to eight seconds, and hear Nadia answer.
+
+**You will need:**
+- a key with the **Voice agent · converse** scope ([create one](https://www.namuai-lab.com/account/keys));
+- Python 3.9+ and the [Python library](/sdks/python) (`pip install namu-ai`);
+- `ffmpeg` to record from the microphone, and `ffplay` (installed with it) to play the answer.
+
+<Steps>
+  <Step title="The loop">
+    ```python talk.py
+    import base64
+    import platform
+    import subprocess
+    import uuid
+    from pathlib import Path
+
+    from namu import Namu, NamuError
+
+    client = Namu()
+    session = uuid.uuid4().hex[:12]          # echoed back by the API, so you can match turns in your logs
+    MIC = {"Darwin": ["-f", "avfoundation", "-i", ":0"],
+           "Linux": ["-f", "alsa", "-i", "default"],
+           "Windows": ["-f", "dshow", "-i", "audio=Microphone"]}[platform.system()]
+
+    while True:
+        input("Press Enter and speak in Hausa (Ctrl+C to stop)… ")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *MIC, "-t", "8", "-ac", "1", "-ar", "16000", "you.wav"], check=True)
+        try:
+            turn = client.converse(Path("you.wav"), session_id=session)
+        except NamuError as e:
+            print("…", "Speak again, please." if e.type == "nothing_heard" else e.type)
+            continue
+        print("You:  ", turn["heard"])
+        print("Nadia:", turn["reply"])
+        Path("nadia.wav").write_bytes(base64.b64decode(turn["audio"]))
+        subprocess.run(["ffplay", "-autoexit", "-nodisp", "-loglevel", "error", "nadia.wav"])
+    ```
+    On Windows, replace `Microphone` with your device name from `ffmpeg -list_devices true -f dshow -i dummy`.
+  </Step>
+
+  <Step title="Talk">
+    ```bash
+    python talk.py
+    ```
+    Try *"Sannu, yaya kike?"* (Hello, how are you?).
+  </Step>
+</Steps>
+
+Each turn stands alone: the API does not remember earlier turns. Each turn counts the audio you sent plus Nadia's reply.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Voice agent" icon="message-circle" href="/capabilities/voice-agent">What it can and cannot do yet</Card>
+  <Card title="Tell us what you need" icon="life-buoy" href="/resources/support">Feedback shapes the agent</Card>
+</CardGroup>

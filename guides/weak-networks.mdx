@@ -1,0 +1,58 @@
+---
+title: "Building for weak networks"
+description: "Most people who will hear your app are on phones, on mobile data that is slow, costly and drops. Design for that from the first line."
+icon: "wifi-low"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Making voice apps work on 2G and 3G" duration="8 min" />
+
+Once awake, the Namu API answers in seconds. The slow part is usually the last kilometre: the phone's connection. These habits make the difference between an app people use and one they give up on.
+
+## Send and receive small audio
+
+- **Ask for `opus`** from `/v1/speech`: about 40 KB for ten seconds, against 480 KB as WAV. Use `mp3` where Opus does not play.
+- **Upload voice notes as they are.** A WhatsApp OGG is already small; converting it to WAV first makes it about ten times larger.
+- **Record in mono**, at the phone's normal speech settings. Stereo and high sample rates add bytes, not accuracy.
+
+## Make fewer round trips
+
+- **Speech in, speech out in one call.** `/v1/translate` with `include_audio` returns the translation and its audio together.
+- **Generate shared audio once.** A daily announcement played to thousands of people should be one `/v1/speech` call, stored on your server or a CDN, not one call per listener.
+- **Read `/v1/voices` once** when your app starts, not before each request.
+
+## Handle the line dropping
+
+- **Keep the recording until the answer arrives.** If the upload fails, retry from the saved file instead of asking the person to speak again.
+- **Retry with a pause.** On a network error, `502` or `504`, wait a second, then two, then four, and stop after a few tries. A request that fails counts nothing against your allowance.
+- **Use a generous timeout.** The first request after a quiet spell can take a minute or more while the model wakes up. Set timeouts in minutes, not seconds, and show the person that something is happening.
+
+```python Python
+import time
+import requests
+
+def post_with_retries(url, tries=4, **kwargs):
+    for attempt in range(tries):
+        try:
+            response = requests.post(url, timeout=300, **kwargs)
+            if response.status_code not in (429, 502, 503, 504):
+                return response
+            wait = int(response.headers.get("Retry-After", 2 ** attempt))
+        except requests.ConnectionError:
+            wait = 2 ** attempt
+        time.sleep(wait)
+    return response
+```
+
+<Note>
+  Do not retry `429 quota_exceeded`: the month's allowance is used, and only next month (or a higher allowance) changes that.
+</Note>
+
+## Show progress people can trust
+
+Speech takes a moment to make and to download. Say so: a short sound or a "listening…" state when recording ends, and play the answer as soon as the file arrives. On slow lines, a text version of the answer shown first (the `text`, `reply` or `source_text` field) lets people start reading while the audio loads.
+
+## Work offline where you can
+
+Queue recordings when there is no connection and send them when it returns; store audio you generated so a second listen costs nothing. Voice notes in the Sahel often travel when the network allows, not when they are recorded, and your app can do the same.

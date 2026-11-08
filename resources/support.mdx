@@ -1,0 +1,55 @@
+---
+title: "Help and support"
+description: "Where to ask, what to include, and how to check that the API is up."
+icon: "life-buoy"
+---
+
+## Write to us
+
+<Card title="contact@namuai.org" icon="mail" href="mailto:contact@namuai.org">
+  Questions, bugs, a mistake in a Hausa or Zarma example, a higher limit for a pilot. We answer in English or French.
+</Card>
+
+To help us answer quickly, include:
+
+- the **`request_id`** from the error (or the `X-Request-Id` header), and the time with your time zone;
+- the endpoint and the options you sent (not your key, and not audio of anyone who did not agree to share it);
+- what you expected, and what happened.
+
+## Is the API up?
+
+```bash
+curl https://api.namuai-lab.com/v1/health
+```
+
+```json
+{ "service": "namu-api", "status": "ok", "models": ["speech-recognition", "speech-synthesis", "translation", "voice-agent"] }
+```
+
+`/v1/health` needs no key. If it answers but your requests fail, the error's `type` usually says why: see [errors](/guides/errors).
+
+## Common questions
+
+<AccordionGroup>
+  <Accordion title="The first request is slow. Is something wrong?">
+    No. When the API has been quiet, the first request wakes the model, which can take a minute or more. The next requests are much faster. Keep generous timeouts.
+  </Accordion>
+  <Accordion title="Can I use the API from my mobile app directly?">
+    Not with your key in the app. Call it from your server, and let the app call your server. See [API keys](/guides/api-keys#keep-keys-secret).
+  </Accordion>
+  <Accordion title="Can I use my own voice, or clone one?">
+    No. The API speaks with the voices listed in [voices](/voices-and-languages), each used with its speaker's consent.
+  </Accordion>
+  <Accordion title="Do you support Fulfulde, Tamasheq or Kanuri?">
+    Not in the API yet. They are part of the Lab's research; we add a language when we can measure that it works.
+  </Accordion>
+  <Accordion title="Can I get more than 30 minutes a month?">
+    During the beta, write to us with what you are building and the volume you expect.
+  </Accordion>
+  <Accordion title="What happens to my audio and text?">
+    Namu keeps usage records (which model, when, how much audio, how long it took, the status), not your audio or text. Speech to text and text to speech run on Namu's own models. Translation and the voice agent's replies are written by Google Gemini through OpenRouter, which receives the text they work on (and, for spoken French in a translation, the recording). See the [privacy policy](https://www.namuai-lab.com/privacy).
+  </Accordion>
+  <Accordion title="How do I delete my account?">
+    From the console's Settings, write to us from your account's email address: we delete the account, its keys and its usage records.
+  </Accordion>
+</AccordionGroup>

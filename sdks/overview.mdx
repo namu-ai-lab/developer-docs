@@ -1,0 +1,78 @@
+---
+title: "SDKs"
+sidebarTitle: "Overview"
+description: "Use the Namu API from Python, JavaScript, Android, iOS or any language that speaks HTTP."
+icon: "package"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Choosing how to call the Namu API" duration="3 min" />
+
+The Namu API is plain HTTPS and JSON, so every language can call it. For Python and JavaScript there are official libraries: install one and call `client.speech(...)`, `client.transcribe(...)`, `client.translate(...)`. They read your key from `NAMU_API_KEY`, retry what is safe to retry, type every response, and raise one error class per status, with its stable code and request id.
+
+## Libraries
+
+| Language | Install | Depends on | Runs on |
+| --- | --- | --- | --- |
+| [Python](/sdks/python) | `pip install namu-ai` | `requests` | Python 3.9+ |
+| [JavaScript and TypeScript](/sdks/javascript) | `npm install namu-ai` | nothing | Node 18+, Deno, Bun, Cloudflare Workers |
+| [Any language](/sdks/http) | HTTP, or generate a client from our OpenAPI file | an HTTP library | everywhere |
+
+## Mobile apps
+
+Mobile apps talk to **your server**, and your server talks to Namu: a key inside an app can be extracted. The mobile pages show both halves.
+
+| Platform | Page | What it shows |
+| --- | --- | --- |
+| Android | [Android (Kotlin)](/sdks/android) | Record a voice note, send it to your server, play the answer |
+| iOS | [iOS (Swift)](/sdks/ios) | The same with `AVAudioRecorder` and `URLSession` |
+
+## Create and export an API key
+
+Every client reads the key from the environment:
+
+<CodeGroup>
+  ```bash macOS and Linux
+  export NAMU_API_KEY="namu_sk_..."
+  ```
+
+  ```powershell Windows (PowerShell)
+  setx NAMU_API_KEY "namu_sk_..."
+  ```
+</CodeGroup>
+
+Create a key in the [console](https://www.namuai-lab.com/account/keys). More in [API keys](/guides/api-keys).
+
+## The same call in each language
+
+<CodeGroup>
+  ```python Python
+  from namu import Namu
+
+  client = Namu()
+  audio = client.speech("Sannu da zuwa!", voice="nadia", format="mp3")
+  open("welcome.mp3", "wb").write(audio)
+  ```
+
+  ```typescript TypeScript
+  import { writeFile } from "node:fs/promises";
+  import { Namu } from "namu-ai";
+
+  const namu = new Namu();
+  const audio = await namu.speech("Sannu da zuwa!", { voice: "nadia", format: "mp3" });
+  await writeFile("welcome.mp3", Buffer.from(audio));
+  ```
+
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/speech \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Sannu da zuwa!", "voice": "nadia", "format": "mp3"}' \
+    -o welcome.mp3
+  ```
+</CodeGroup>
+
+## Community libraries
+
+None yet. If you build a Namu library for Dart, PHP, Go, Kotlin or another language, [tell us](/resources/support) and we will list it here. Community libraries are not maintained by Namu: check them before you use them.

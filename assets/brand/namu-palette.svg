@@ -1,0 +1,22 @@
+<svg width="1200" height="480" viewBox="0 0 1200 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="240" fill="#F7F0E3"/>
+  <rect x="400" width="400" height="240" fill="#1C1410"/>
+  <rect x="800" width="400" height="240" fill="#E8935A"/>
+  <rect y="240" width="400" height="240" fill="#EDD9B0"/>
+  <rect x="400" y="240" width="400" height="240" fill="#6B3E1E"/>
+  <rect x="800" y="240" width="400" height="240" fill="#1A3A2E"/>
+  <g font-family="DM Sans, Arial, sans-serif" font-size="30" font-weight="600">
+    <text x="36" y="178" fill="#1C1410">Harmattan</text>
+    <text x="36" y="214" fill="#1C1410" font-size="22" font-weight="400">#F7F0E3</text>
+    <text x="436" y="178" fill="#F7F0E3">Ink</text>
+    <text x="436" y="214" fill="#F7F0E3" font-size="22" font-weight="400">#1C1410</text>
+    <text x="836" y="178" fill="#1C1410">Sahel</text>
+    <text x="836" y="214" fill="#1C1410" font-size="22" font-weight="400">#E8935A</text>
+    <text x="36" y="418" fill="#1C1410">Dry Clay</text>
+    <text x="36" y="454" fill="#1C1410" font-size="22" font-weight="400">#EDD9B0</text>
+    <text x="436" y="418" fill="#F7F0E3">Kola</text>
+    <text x="436" y="454" fill="#F7F0E3" font-size="22" font-weight="400">#6B3E1E</text>
+    <text x="836" y="418" fill="#F7F0E3">Forest</text>
+    <text x="836" y="454" fill="#F7F0E3" font-size="22" font-weight="400">#1A3A2E</text>
+  </g>
+</svg>

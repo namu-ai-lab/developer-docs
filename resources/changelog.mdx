@@ -1,0 +1,63 @@
+---
+title: "Changelog"
+description: "What changed in the Namu API, newest first."
+icon: "history"
+rss: true
+---
+
+<Update label="November 2026" description="Feature · SDKs">
+  ## Official Python and JavaScript libraries
+
+  `pip install namu-ai` and `npm install namu-ai`: the whole API, typed responses, one error class per status, retries and timeouts built in. Open source under Apache 2.0 at [namu-ai-lab/namu-sdks](https://github.com/namu-ai-lab/namu-sdks).
+</Update>
+
+<Update label="7 November 2026" description="Feature · speech-recognition · /v1/transcribe">
+  ## Speech recognition in Zarma and French
+
+  `/v1/transcribe` now takes `language=dje` (Zarma) and `language=fr` (French) as well as Hausa, served by a new recognition model. Transcripts come in lower case, without punctuation.
+</Update>
+
+<Update label="7 November 2026" description="Change · all models · /v1/models">
+  ## Models are named after their tasks
+
+  The models are now `speech-recognition`, `speech-synthesis`, `translation` and `voice-agent` (they were `tatsuniya`, `tafiya`, `kora` and `air`). The new names appear in the `model` field of responses and in `/v1/models`. Requests never named a model, so no code needs to change unless it reads that field.
+
+  Every voice is now spoken by the same speech synthesis model.
+</Update>
+
+<Update label="1 November 2026" description="Feature · speech-synthesis · /v1/speech">
+  ## Zarma speech, and the voice `mouhamad`
+
+  `/v1/speech` speaks Zarma (`"language": "dje"`) with the new voice `mouhamad`, who also speaks Hausa. The French voice `fr` is back.
+</Update>
+
+<Update label="1 November 2026" description="Change · /v1">
+  ## New address: api.namuai-lab.com
+
+  The API is served at `https://api.namuai-lab.com`. The earlier address keeps answering for existing integrations; please move to the new one.
+</Update>
+
+<Update label="31 October 2026" description="Feature · speech-synthesis, translation · /v1/speech, /v1/translate">
+  ## MP3 and Opus, and text translation
+
+  - `/v1/speech` takes `format`: `wav` (default), `mp3`, `opus` or `json`. Opus is about a twelfth of the size of WAV.
+  - `/v1/translate` translates text: send JSON with `text`, `source` and `target`.
+</Update>
+
+<Update label="31 October 2026" description="Removed · /v1/speech, /v1/converse">
+  ## The voice `salim` is withdrawn
+
+  We could not confirm the consent of the person behind the voice `salim`, so it was removed. Requests that name it return `400 unknown_voice` (or `unknown_persona`); nothing falls back to another voice.
+</Update>
+
+<Update label="19 October 2026" description="Launch · /v1">
+  ## The Namu API opens in beta
+
+  API keys, speech synthesis, speech recognition, Hausa ⇄ French translation and the voice agent, with 30 free minutes of audio a month for every account.
+</Update>
+
+## How we change the API
+
+- **Added fields and endpoints** can arrive at any time. Write your code to ignore fields it does not know.
+- **Changes that could break a working integration** (removing or renaming a field, changing a default) are announced here, with the date, before they happen, except when we must act at once to protect people, as with a withdrawn voice.
+- **Research models** (the voice agent) can change without notice.

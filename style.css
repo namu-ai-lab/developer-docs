@@ -1,0 +1,158 @@
+/* Namu developer docs: the brand on top of Mintlify's Maple theme. Cream paper, warm Ink, a little Kola, DM Sans,
+   real waveforms instead of decoration, nothing that downloads until someone asks for it. Mintlify loads every .css
+   file in the content folder on every page. Dark mode is the `dark` class on <html>. */
+
+:root {
+  --namu-paper: #fffaf1;
+  --namu-surface: #f7f0e3;
+  --namu-surface-2: #f3e7d1;
+  --namu-clay: #edd9b0;
+  --namu-ink: #1c1410;
+  --namu-ink-2: #4a3d33;
+  --namu-ink-3: #7a6352;
+  --namu-kola: #6b3e1e;
+  --namu-line: rgba(28, 20, 16, 0.1);
+  --namu-line-2: rgba(28, 20, 16, 0.16);
+}
+.dark {
+  --namu-paper: #1c1410;
+  --namu-surface: #251b15;
+  --namu-surface-2: #2e221b;
+  --namu-clay: #3a2b21;
+  --namu-ink: #fffaf1;
+  --namu-ink-2: #e6d9c6;
+  --namu-ink-3: #b8a48f;
+  --namu-kola: #e8a77b;
+  --namu-line: rgba(255, 250, 241, 0.1);
+  --namu-line-2: rgba(255, 250, 241, 0.16);
+}
+
+/* ---------- home ---------- */
+.namu-hero { padding: 4px 0 8px; }
+.namu-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: 13px; font-weight: 500;
+  color: var(--namu-kola); letter-spacing: 0.01em;
+}
+.namu-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--namu-kola); }
+.namu-hero h1 {
+  margin: 0; font-size: clamp(34px, 5vw, 52px); line-height: 1.05; letter-spacing: -0.025em; font-weight: 600;
+  color: var(--namu-ink);
+}
+.namu-hero p { margin: 16px 0 0; max-width: 620px; font-size: 18px; line-height: 1.55; color: var(--namu-ink-2); }
+.namu-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.namu-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: 999px;
+  font-size: 14.5px; font-weight: 500; text-decoration: none !important; border: 0 !important;
+  background: var(--namu-surface-2); color: var(--namu-ink) !important; transition: background 0.15s ease;
+}
+.namu-btn:hover { background: var(--namu-clay); }
+.namu-btn--ink { background: var(--namu-ink); color: var(--namu-paper) !important; }
+.namu-btn--ink:hover { background: var(--namu-ink-2); }
+
+.namu-langs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.namu-chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 999px;
+  background: var(--namu-surface); color: var(--namu-ink); font-size: 13px; font-weight: 500;
+}
+.namu-chip code { background: none !important; border: 0 !important; padding: 0 !important; font-size: 12px; color: var(--namu-ink-3); }
+.namu-chip--quiet { background: transparent; box-shadow: inset 0 0 0 1px var(--namu-line-2); color: var(--namu-ink-3); }
+
+.namu-section-label {
+  margin: 44px 0 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--namu-ink-3);
+}
+
+/* the four capabilities, each with the endpoint it calls */
+.namu-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .namu-grid { grid-template-columns: 1fr; } }
+.namu-tile {
+  display: flex; flex-direction: column; gap: 6px; padding: 18px 18px 16px; border-radius: 16px;
+  background: var(--namu-surface); text-decoration: none !important; border: 0 !important; color: var(--namu-ink) !important;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.namu-tile:hover { background: var(--namu-surface-2); }
+.namu-tile-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.namu-tile-name { font-size: 16px; font-weight: 600; }
+.namu-tile-text { font-size: 14px; line-height: 1.5; color: var(--namu-ink-2); }
+.namu-tile code { font-size: 12px; color: var(--namu-ink-3); background: none !important; border: 0 !important; padding: 0 !important; }
+.namu-status {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 11.5px;
+  font-weight: 600; letter-spacing: 0.02em; background: var(--namu-paper); color: var(--namu-kola);
+}
+.namu-status--research { color: var(--namu-ink-3); }
+
+/* ---------- video frames (snippets/video.jsx) ---------- */
+.namu-video-frame {
+  position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 18px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; padding: 18px 20px;
+  background:
+    radial-gradient(120% 90% at 0% 100%, var(--namu-clay) 0%, transparent 55%),
+    linear-gradient(160deg, var(--namu-surface) 0%, var(--namu-surface-2) 100%);
+  box-shadow: inset 0 0 0 1px var(--namu-line);
+  color: var(--namu-ink);
+}
+.namu-video-frame { border: 0; text-align: left; font: inherit; }
+.namu-video-frame.is-ready { cursor: pointer; }
+.namu-video-frame.is-ready:hover { box-shadow: inset 0 0 0 1.5px var(--namu-kola); }
+.namu-video-frame:focus-visible { outline: 2px solid var(--namu-kola); outline-offset: 3px; }
+.namu-video-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.namu-video-pill {
+  display: inline-flex; align-items: center; height: 26px; padding: 0 11px; border-radius: 999px;
+  background: var(--namu-paper); font-size: 12px; font-weight: 600; color: var(--namu-kola);
+}
+.namu-video-duration {
+  display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 8px;
+  background: rgba(28, 20, 16, 0.78); color: #fffaf1; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums;
+}
+.namu-video-middle { display: flex; align-items: center; gap: 16px; color: var(--namu-ink); }
+.namu-video-title {
+  font-size: clamp(16px, 2.4vw, 22px); font-weight: 600; letter-spacing: -0.01em; max-width: 80%; line-height: 1.25;
+}
+.namu-video-caption { margin-top: 8px; font-size: 13px; color: var(--namu-ink-3); }
+
+.namu-video-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 16px 0 8px; }
+@media (max-width: 900px) { .namu-video-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .namu-video-grid { grid-template-columns: 1fr; } }
+.namu-video-card {
+  display: flex; flex-direction: column; gap: 10px; text-decoration: none !important; border: 0 !important;
+  color: var(--namu-ink) !important;
+}
+.namu-video-thumb {
+  position: relative; aspect-ratio: 16 / 9; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  gap: 12px; background: linear-gradient(160deg, var(--namu-surface) 0%, var(--namu-surface-2) 100%);
+  box-shadow: inset 0 0 0 1px var(--namu-line); transition: transform 0.2s ease;
+}
+.namu-video-card:hover .namu-video-thumb { transform: translateY(-2px); }
+.namu-video-duration--thumb { position: absolute; right: 10px; bottom: 10px; }
+.namu-video-card-body { display: flex; flex-direction: column; gap: 3px; }
+.namu-video-level { font-size: 12px; font-weight: 600; color: var(--namu-kola); }
+.namu-video-card-title { font-size: 15px; font-weight: 600; line-height: 1.35; }
+.namu-video-card-text { font-size: 13.5px; line-height: 1.5; color: var(--namu-ink-2); }
+
+/* ---------- voices (snippets/voices.jsx) ---------- */
+.namu-voice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+@media (max-width: 900px) { .namu-voice-grid { grid-template-columns: 1fr; } }
+.namu-voice { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: var(--namu-surface); }
+.namu-voice-head { display: flex; align-items: center; gap: 12px; }
+.namu-voice-play {
+  width: 40px; height: 40px; flex: none; border-radius: 999px; border: 0; cursor: pointer; display: inline-flex;
+  align-items: center; justify-content: center; background: var(--namu-ink); color: var(--namu-paper);
+}
+.namu-voice-play:focus-visible { outline: 2px solid var(--namu-kola); outline-offset: 2px; }
+.namu-voice-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.namu-voice-name { font-size: 15px; font-weight: 600; color: var(--namu-ink); }
+.namu-voice-id { font-size: 12px; color: var(--namu-ink-3); background: none !important; border: 0 !important; padding: 0 !important; }
+.namu-voice-wave { width: 100%; height: 34px; }
+.namu-voice-wave rect { fill: var(--namu-ink); opacity: 0.22; }
+.namu-voice-wave rect.is-done { fill: var(--namu-kola); opacity: 1; }
+.namu-voice-text { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--namu-ink-2); }
+.namu-voice-langs { display: flex; flex-wrap: wrap; gap: 6px; }
+.namu-voice-langs .namu-chip { background: var(--namu-paper); height: 26px; font-size: 12.5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .namu-tile, .namu-video-thumb, .namu-btn { transition: none; }
+  .namu-video-card:hover .namu-video-thumb { transform: none; }
+}
+
+/* the logo: the brand mark is drawn on a wide canvas, so give it room in the navigation */
+img.nav-logo { height: 34px !important; max-width: none !important; }

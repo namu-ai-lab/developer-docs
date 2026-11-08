@@ -1,0 +1,110 @@
+---
+title: "Any language (HTTP)"
+sidebarTitle: "Any language"
+description: "Call the API with curl or any HTTP library, or generate a client from the OpenAPI file."
+icon: "globe"
+---
+
+The API needs nothing more than HTTPS. Three things to know:
+
+1. **Authentication:** `Authorization: Bearer namu_sk_...`
+2. **Text in:** a JSON body with `Content-Type: application/json`
+3. **Audio in:** a `multipart/form-data` body with the recording in a field named `file`, or the raw bytes as the body with options in the query string
+
+## curl
+
+<CodeGroup>
+  ```bash Speech
+  curl https://api.namuai-lab.com/v1/speech \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Sannu da zuwa!", "voice": "nadia", "format": "opus"}' \
+    -o welcome.ogg
+  ```
+
+  ```bash Transcribe
+  curl https://api.namuai-lab.com/v1/transcribe \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@note.ogg -F language=ha
+  ```
+
+  ```bash Translate
+  curl https://api.namuai-lab.com/v1/translate \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Bonjour, comment allez-vous ?", "source": "fr", "target": "ha"}'
+  ```
+
+  ```bash Usage
+  curl https://api.namuai-lab.com/v1/usage \
+    -H "Authorization: Bearer $NAMU_API_KEY"
+  ```
+</CodeGroup>
+
+## The raw request
+
+What goes over the wire for a transcription, if your language has only a basic HTTP client:
+
+```http
+POST /v1/transcribe?language=ha HTTP/1.1
+Host: api.namuai-lab.com
+Authorization: Bearer namu_sk_...
+Content-Type: audio/ogg
+Content-Length: 18342
+
+<the bytes of the voice note>
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+X-Request-Id: 3f2a9c1e5b7d4e8fa0c2b6d9e1f3a5c7
+
+{"model":"speech-recognition","text":"sannu da zuwa","language":"ha","audio_seconds":2.0}
+```
+
+The `Content-Type` of raw audio does not matter: the API reads the format from the bytes.
+
+## PHP
+
+Many sites in the region run PHP. With cURL:
+
+```php
+<?php
+$ch = curl_init("https://api.namuai-lab.com/v1/speech");
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 300,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer " . getenv("NAMU_API_KEY"),
+        "Content-Type: application/json",
+    ],
+    CURLOPT_POSTFIELDS => json_encode(["text" => "Sannu da zuwa!", "voice" => "nadia", "format" => "mp3"]),
+]);
+$audio = curl_exec($ch);
+$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+if ($status !== 200) {
+    $error = json_decode($audio, true)["error"];
+    error_log("Namu API {$error['type']}: {$error['message']} ({$error['request_id']})");
+} else {
+    file_put_contents("welcome.mp3", $audio);
+}
+```
+
+## Generate a client from OpenAPI
+
+The whole API is described in OpenAPI 3.1. Generate a typed client for Go, Java, Kotlin, Dart, C# or another language with [OpenAPI Generator](https://openapi-generator.tech):
+
+```bash
+# download openapi.yaml from the card below first
+npx @openapitools/openapi-generator-cli generate -i openapi.yaml -g go -o ./namu-go
+```
+
+Or import the same file into Postman, Insomnia or Bruno to try every endpoint with your key.
+
+<Card title="openapi.yaml" icon="file-code" href="/api-reference/openapi.yaml">
+  Download the OpenAPI description.
+</Card>

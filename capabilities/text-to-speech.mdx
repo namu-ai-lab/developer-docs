@@ -1,0 +1,147 @@
+---
+title: "Text to speech"
+description: "Turn text into natural speech in Hausa, Zarma or French, with a voice your listeners will trust."
+icon: "audio-lines"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+import { VoiceGallery } from "/snippets/voices.jsx";
+
+<VideoSlot title="Text to speech in Hausa, Zarma and French" duration="4 min" />
+
+## Overview
+
+`POST /v1/speech` takes up to 2,000 characters of text and returns the audio, spoken by the voice you choose. Use it to read messages to people who prefer listening to reading: health reminders, farming advice, school lessons, announcements, a reply in a chat app.
+
+- **Model:** `speech-synthesis` (beta)
+- **Languages:** Hausa `ha`, Zarma `dje`, French `fr`
+- **Output:** WAV (default), MP3, Ogg Opus, or JSON with base64 audio
+- **Counts:** the length of the audio returned
+
+## Quickstart
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/speech \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.", "voice": "nadia", "format": "mp3"}' \
+    -o farming.mp3
+  ```
+
+  ```python Python
+  import os
+  import requests
+
+  response = requests.post(
+      "https://api.namuai-lab.com/v1/speech",
+      headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+      json={
+          "text": "Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.",
+          "voice": "nadia",
+          "format": "mp3",
+      },
+      timeout=120,
+  )
+  response.raise_for_status()
+  open("farming.mp3", "wb").write(response.content)
+  ```
+
+  ```javascript JavaScript
+  const response = await fetch("https://api.namuai-lab.com/v1/speech", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.NAMU_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: "Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.",
+      voice: "nadia",
+      format: "mp3",
+    }),
+  });
+  const audio = Buffer.from(await response.arrayBuffer());
+  ```
+</CodeGroup>
+
+*"The rainy season has set in. It is time for farmers to start sowing millet and sorghum."*
+
+## Request
+
+<ParamField body="text" type="string" required>
+  What to say, up to 2,000 characters. Write it as you want it heard: spell out abbreviations your listeners would not say.
+</ParamField>
+
+<ParamField body="voice" type="string" default="nadia">
+  `nadia` (or its alias `warm`), `mouhamad` or `fr`. See [voices](/voices-and-languages).
+</ParamField>
+
+<ParamField body="language" type="string">
+  `ha`, `dje` or `fr`. Defaults to the voice's first language; it must be a language the voice speaks.
+</ParamField>
+
+<ParamField body="format" type="string" default="wav">
+  `wav`, `mp3`, `opus` or `json`. See [output formats](#output-formats).
+</ParamField>
+
+## Voices
+
+<VoiceGallery />
+
+## Output formats
+
+| `format` | Content type | Audio | Best for |
+| --- | --- | --- | --- |
+| `wav` | `audio/wav` | 24 kHz, 16-bit PCM, mono | Editing, or passing to other audio tools |
+| `mp3` | `audio/mpeg` | 64 kbit/s, mono | Playing anywhere, every browser and phone |
+| `opus` | `audio/ogg` | Ogg Opus, 48 kHz, 32 kbit/s, mono | **The smallest file.** Mobile data, WhatsApp-style voice messages |
+| `json` | `application/json` | base64 WAV in the `audio` field | When your stack can only handle JSON |
+
+The binary formats return an `X-Audio-Seconds` header with the length of the audio. A ten-second sentence is about 480 KB as WAV, 80 KB as MP3 and 40 KB as Opus: on a 3G connection, pick `opus` or `mp3`.
+
+With `json`, the answer looks like this:
+
+```json
+{
+  "model": "speech-synthesis",
+  "voice": "nadia",
+  "language": "ha",
+  "audio_seconds": 4.2,
+  "audio": "UklGRiQAAABXQVZFZm10IBAAAAABAAEAwF0AAIC7AAACABAAZGF0YQAAAAA...",
+  "sample_rate": 24000
+}
+```
+
+## Best practices
+
+<AccordionGroup>
+  <Accordion title="Keep sentences short" icon="scissors">
+    One idea per sentence sounds clearer and is easier to follow on a phone speaker. For a long text, send it paragraph by paragraph and play the pieces one after another: the first one starts playing sooner.
+  </Accordion>
+  <Accordion title="Write numbers and dates the way people say them" icon="hash">
+    Write "goma sha biyar" rather than "15" when you need a number said a particular way, and spell out dates, prices and abbreviations. You control exactly what is heard.
+  </Accordion>
+  <Accordion title="Generate once, play many times" icon="repeat">
+    A reminder sent to a thousand people is the same audio. Generate it once, store the file, and serve it from your own storage: it saves your allowance and loads faster for everyone.
+  </Accordion>
+  <Accordion title="Expect small differences between takes" icon="shuffle">
+    The model says a sentence a little differently each time. If one take matters (an announcement, a jingle), generate two or three and keep the one you prefer.
+  </Accordion>
+  <Accordion title="Tell people the voice is AI" icon="badge-info">
+    Let listeners know the voice is generated, especially for health, money or official information. See [responsible use](/resources/responsible-use).
+  </Accordion>
+</AccordionGroup>
+
+## Limits
+
+- Up to 2,000 characters per request (`413 text_too_long` beyond).
+- No streaming yet: the whole file comes back at once.
+- The first request after a quiet spell is slower while the model wakes up.
+
+## Related
+
+<CardGroup cols={3}>
+  <Card title="Read aloud in Hausa" icon="circle-play" href="/tutorials/read-aloud-in-hausa">Tutorial</Card>
+  <Card title="Audio formats" icon="file-music" href="/guides/audio-formats">Guide</Card>
+  <Card title="API reference" icon="square-terminal" href="/api-reference/speech/create-speech">POST /v1/speech</Card>
+</CardGroup>

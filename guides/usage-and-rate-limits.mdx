@@ -1,0 +1,57 @@
+---
+title: "Usage and rate limits"
+description: "How requests are counted, how to check where you stand, and how to stay inside the limits."
+icon: "gauge"
+---
+
+## Two limits
+
+| | Limit | Resets | When reached |
+| --- | --- | --- | --- |
+| **Allowance** | 1,800 audio seconds (30 minutes) per account | The 1st of each month, UTC | `429 quota_exceeded` |
+| **Rate limit** | 60 requests per minute per key | Every minute | `429 rate_limited` with `Retry-After` |
+
+The allowance is shared by all the keys of an account; the rate limit applies to each key. [What each request counts](/pricing-and-limits#what-counts).
+
+## Check your usage
+
+In the [console](https://www.namuai-lab.com/account/usage), or from code:
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/usage \
+    -H "Authorization: Bearer $NAMU_API_KEY"
+  ```
+
+  ```python Python
+  usage = requests.get(
+      "https://api.namuai-lab.com/v1/usage",
+      headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+  ).json()
+  left = usage["month_audio_seconds_limit"] - usage["month_audio_seconds_used"]
+  print(f"{left / 60:.1f} minutes left this month")
+  ```
+</CodeGroup>
+
+```json Response
+{ "month_audio_seconds_used": 312.4, "month_audio_seconds_limit": 1800.0 }
+```
+
+`/v1/usage` needs a key (any scope), does not count against the rate limit, and may lag by up to 30 seconds.
+
+## Stay inside the limits
+
+- **Cache what you repeat.** The same sentence spoken twice costs twice; stored once, it costs once.
+- **Send only speech.** Trim long silences at the start and end of recordings before you send them: transcription counts the whole file.
+- **Spread out batch work.** Processing an archive? Send requests one after another rather than all at once, and honour `Retry-After`.
+- **Watch the month.** Check `/v1/usage` daily in production and warn yourself before the allowance runs out.
+
+## Headers
+
+| Header | On | Meaning |
+| --- | --- | --- |
+| `X-Request-Id` | every response | A unique id for the request |
+| `X-Audio-Seconds` | `/v1/speech` audio responses | Length of the audio returned |
+| `Retry-After` | `429 rate_limited` | Seconds to wait before trying again |
+
+Need more for a pilot or a launch? [Write to us](/resources/support) with what you are building and the volume you expect.

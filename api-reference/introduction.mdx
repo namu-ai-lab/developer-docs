@@ -1,0 +1,44 @@
+---
+title: "API reference"
+sidebarTitle: "Introduction"
+description: "Every endpoint, field and response of the Namu API. Try each one from this page with your own key."
+icon: "square-terminal"
+---
+
+## Base URL
+
+```text
+https://api.namuai-lab.com
+```
+
+Every endpoint lives under `/v1`. Requests and responses use HTTPS only.
+
+## Endpoints
+
+| Method | Endpoint | What it does | Key |
+| --- | --- | --- | :---: |
+| `POST` | [`/v1/speech`](/api-reference/speech/create-speech) | Text to speech | ✓ |
+| `POST` | [`/v1/transcribe`](/api-reference/transcription/create-transcription) | Speech to text | ✓ |
+| `POST` | [`/v1/translate`](/api-reference/translation/create-translation) | Hausa ⇄ French, text or speech | ✓ |
+| `POST` | [`/v1/converse`](/api-reference/voice-agent/converse) | One turn with the voice agent (research) | ✓ |
+| `GET` | [`/v1/models`](/api-reference/models-and-voices/list-models) | The models and their languages | |
+| `GET` | [`/v1/voices`](/api-reference/models-and-voices/list-voices) | The voices | |
+| `GET` | [`/v1/usage`](/api-reference/account/get-usage) | Your usage this month | ✓ |
+| `GET` | [`/v1/health`](/api-reference/account/health) | Whether the API is answering | |
+
+## Conventions
+
+- **Authentication:** `Authorization: Bearer namu_sk_...`. See [authentication](/api-reference/authentication).
+- **Bodies:** JSON for text (`/v1/speech`, text translation); multipart with a `file` field, or the raw audio as the body, for audio.
+- **Errors:** always `{"error": {"type", "message", "request_id"}}`. See [errors](/api-reference/errors).
+- **Request ids:** every response has an `X-Request-Id` header.
+- **No streaming yet:** every response arrives whole.
+- **Versioning:** the version is in the path (`/v1`). Fields can be added to responses at any time; anything that would break an integration comes with notice in the [changelog](/resources/changelog).
+
+## OpenAPI
+
+The reference is generated from an OpenAPI 3.1 description of the API. Download it to generate a client in your language or import it into Postman, Insomnia or Bruno:
+
+<Card title="openapi.yaml" icon="file-code" href="/api-reference/openapi.yaml">
+  The Namu API in OpenAPI 3.1.
+</Card>

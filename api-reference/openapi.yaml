@@ -1,0 +1,499 @@
+openapi: 3.1.0
+info:
+  title: Namu API
+  version: "1.0.0"
+  description: >-
+    Speech recognition, speech synthesis, translation and a voice agent for Hausa, Zarma and French.
+    Describes the API as it behaves on 8 November 2026.
+  contact:
+    name: Namu AI Lab
+    email: contact@namuai.org
+    url: https://www.namuai-lab.com
+servers:
+  - url: https://api.namuai-lab.com
+    description: Production
+security:
+  - bearerAuth: []
+tags:
+  - name: Speech
+    description: Text to speech.
+  - name: Transcription
+    description: Speech to text.
+  - name: Translation
+    description: Hausa and French, from text or speech.
+  - name: Voice agent
+    description: A spoken conversation in Hausa. Research preview.
+  - name: Models and voices
+    description: What the API serves. No key needed.
+  - name: Account
+    description: Your usage this month.
+
+paths:
+  /v1/speech:
+    post:
+      tags: [Speech]
+      operationId: createSpeech
+      summary: Create speech
+      description: >-
+        Turns text into spoken audio in Hausa, Zarma or French. Counts the length of the audio returned against
+        your monthly allowance. Needs the `speech` scope.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SpeechRequest" }
+            examples:
+              hausa:
+                summary: Hausa, Nadia
+                value: { text: "Sannu da zuwa! Muna farin cikin jin muryarku.", voice: nadia }
+              zarma:
+                summary: Zarma, Mouhamad, small Opus file
+                value: { text: "Fofo! Mate ni go?", voice: mouhamad, language: dje, format: opus }
+      responses:
+        "200":
+          description: >-
+            The audio, or JSON when `format` is `json`. Binary responses carry `X-Audio-Seconds`.
+          headers:
+            X-Audio-Seconds:
+              description: Length of the returned audio, in seconds.
+              schema: { type: number, example: 2.4 }
+            X-Request-Id: { $ref: "#/components/headers/RequestId" }
+          content:
+            audio/wav:
+              schema: { type: string, format: binary, description: "24 kHz, 16-bit PCM, mono." }
+            audio/mpeg:
+              schema: { type: string, format: binary, description: "64 kbit/s, mono." }
+            audio/ogg:
+              schema: { type: string, format: binary, description: "Ogg Opus, 48 kHz, 32 kbit/s, mono." }
+            application/json:
+              schema: { $ref: "#/components/schemas/SpeechJson" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/TooLarge" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "502": { $ref: "#/components/responses/Upstream" }
+
+  /v1/transcribe:
+    post:
+      tags: [Transcription]
+      operationId: createTranscription
+      summary: Create transcription
+      description: >-
+        Writes down what was said in a recording. Send the audio as a multipart field named `file`, or as the raw
+        request body with `language` in the query string. The container is recognised from the file itself: WAV,
+        MP3, M4A/AAC, OGG/Opus (WhatsApp voice notes), WebM, FLAC. Up to 25 MB and 300 seconds. Counts the length of
+        the audio sent. Needs the `transcribe` scope.
+      parameters:
+        - name: language
+          in: query
+          required: false
+          description: Only when the audio is the raw body. With multipart, send it as a form field.
+          schema: { $ref: "#/components/schemas/TranscribeLanguage" }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The recording.
+                language: { $ref: "#/components/schemas/TranscribeLanguage" }
+          application/octet-stream:
+            schema: { type: string, format: binary, description: "The recording as the whole body." }
+      responses:
+        "200":
+          description: The transcript.
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/RequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transcription" }
+              example: { model: speech-recognition, text: "sannu da zuwa", language: ha, audio_seconds: 2.0 }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/TooLarge" }
+        "415": { $ref: "#/components/responses/UnsupportedAudio" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "502": { $ref: "#/components/responses/Upstream" }
+
+  /v1/translate:
+    post:
+      tags: [Translation]
+      operationId: createTranslation
+      summary: Create translation
+      description: >-
+        Translates between Hausa and French, in both directions. Send JSON to translate text, or audio (multipart
+        `file`, or the raw body) to translate speech. Add `include_audio` to also get the translation spoken.
+        Text counts its characters divided by 15 as seconds; speech counts the audio sent. Needs the `translate`
+        scope.
+      parameters:
+        - name: include_audio
+          in: query
+          required: false
+          description: "`1`, `true` or `yes` to add the spoken translation (base64 WAV) to the answer."
+          schema: { type: string, enum: ["1", "true", "yes"] }
+        - name: source
+          in: query
+          required: false
+          description: Only when the audio is the raw body.
+          schema: { $ref: "#/components/schemas/TranslateLanguage" }
+        - name: target
+          in: query
+          required: false
+          description: Only when the audio is the raw body.
+          schema: { $ref: "#/components/schemas/TranslateLanguage" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TranslateTextRequest" }
+            example: { text: "Ina kwana? Yau za a yi zafi sosai.", source: ha, target: fr }
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary, description: "The recording." }
+                source: { $ref: "#/components/schemas/TranslateLanguage" }
+                target: { $ref: "#/components/schemas/TranslateLanguage" }
+                include_audio: { type: string, enum: ["1", "true", "yes"] }
+      responses:
+        "200":
+          description: The translation. `characters` for text, `audio_seconds` for speech.
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/RequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Translation" }
+              example:
+                model: translation
+                source: ha
+                target: fr
+                source_text: "Ina kwana? Yau za a yi zafi sosai."
+                text: "Bonjour ! Il va faire très chaud aujourd'hui."
+                characters: 34
+                audio: null
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/TooLarge" }
+        "415": { $ref: "#/components/responses/UnsupportedAudio" }
+        "422": { $ref: "#/components/responses/NothingHeard" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "502": { $ref: "#/components/responses/Upstream" }
+
+  /v1/converse:
+    post:
+      tags: [Voice agent]
+      operationId: createConversationTurn
+      summary: Converse
+      description: >-
+        One turn of a spoken conversation in Hausa: send what the person said, get back what was heard, the reply
+        as text and the reply spoken. A research preview. New keys do not include the `converse` scope: tick it
+        when you create the key. Counts the audio sent plus the reply.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary, description: "What the person said." }
+                persona:
+                  type: string
+                  enum: [nadia]
+                  default: nadia
+                  description: Who answers. `nadia` is the only persona.
+                session_id:
+                  type: string
+                  maxLength: 100
+                  description: Your own id for the conversation. Echoed back, never stored.
+      responses:
+        "200":
+          description: The turn.
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/RequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConverseTurn" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "413": { $ref: "#/components/responses/TooLarge" }
+        "415": { $ref: "#/components/responses/UnsupportedAudio" }
+        "422": { $ref: "#/components/responses/NothingHeard" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "502": { $ref: "#/components/responses/Upstream" }
+
+  /v1/models:
+    get:
+      tags: [Models and voices]
+      operationId: listModels
+      summary: List models
+      description: The four models, the endpoint each serves and its languages. No key needed.
+      security: []
+      responses:
+        "200":
+          description: The models.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Model" }
+              example:
+                data:
+                  - { id: speech-recognition, task: transcribe, endpoint: /v1/transcribe, scope: transcribe, languages: [ha, dje, fr], status: beta }
+                  - { id: speech-synthesis, task: speech, endpoint: /v1/speech, scope: speech, languages: [ha, fr, dje], status: beta }
+                  - { id: translation, task: translate, endpoint: /v1/translate, scope: translate, languages: [ha, fr], status: beta }
+                  - { id: voice-agent, task: converse, endpoint: /v1/converse, scope: converse, languages: [ha], status: research }
+
+  /v1/voices:
+    get:
+      tags: [Models and voices]
+      operationId: listVoices
+      summary: List voices
+      description: The voices `/v1/speech` speaks with, and their languages. No key needed.
+      security: []
+      responses:
+        "200":
+          description: The voices.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Voice" }
+              example:
+                data:
+                  - { id: nadia, languages: [ha], language: ha, description: "Warm and patient (female)" }
+                  - { id: warm, languages: [ha], language: ha, description: "Alias of nadia" }
+                  - { id: fr, languages: [fr], language: fr, description: "French reference voice" }
+                  - { id: mouhamad, languages: [dje, ha], language: dje, description: "Male; Zarma and Hausa" }
+
+  /v1/usage:
+    get:
+      tags: [Account]
+      operationId: getUsage
+      summary: Get usage
+      description: >-
+        Audio seconds counted this calendar month (UTC) and your allowance. Needs a key, any scope. May lag by up to
+        30 seconds.
+      responses:
+        "200":
+          description: This month's usage.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Usage" }
+              example: { month_audio_seconds_used: 312.4, month_audio_seconds_limit: 1800.0 }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /v1/health:
+    get:
+      tags: [Account]
+      operationId: getHealth
+      summary: Health
+      description: Whether the API is answering. No key needed.
+      security: []
+      responses:
+        "200":
+          description: The API is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service: { type: string, example: namu-api }
+                  status: { type: string, example: ok }
+                  models: { type: array, items: { type: string } }
+              example: { service: namu-api, status: ok, models: [speech-recognition, speech-synthesis, translation, voice-agent] }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: "Your secret key: `Authorization: Bearer namu_sk_...`. Create one at https://www.namuai-lab.com/account/keys."
+
+  headers:
+    RequestId:
+      description: A unique id for this request. Include it when you write to us.
+      schema: { type: string, example: 3f2a9c1e5b7d4e8fa0c2b6d9e1f3a5c7 }
+
+  schemas:
+    TranscribeLanguage:
+      type: string
+      enum: [ha, dje, fr]
+      default: ha
+      description: "The language spoken: `ha` Hausa, `dje` Zarma, `fr` French."
+    TranslateLanguage:
+      type: string
+      enum: [ha, fr]
+      description: "`ha` Hausa or `fr` French. The source defaults to the other language from the target."
+
+    SpeechRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          maxLength: 2000
+          description: What to say. Up to 2,000 characters.
+        voice:
+          type: string
+          enum: [nadia, warm, mouhamad, fr]
+          default: nadia
+          description: Who says it. See GET /v1/voices.
+        language:
+          type: string
+          enum: [ha, dje, fr]
+          description: The language of the text. Defaults to the voice's first language, and must be one it speaks.
+        format:
+          type: string
+          enum: [wav, mp3, opus, json]
+          default: wav
+          description: "`opus` is the smallest file, for phones and weak connections. `json` returns base64 WAV."
+    SpeechJson:
+      type: object
+      properties:
+        model: { type: string, example: speech-synthesis }
+        voice: { type: string, example: nadia }
+        language: { type: string, example: ha }
+        audio_seconds: { type: number, example: 2.4 }
+        audio: { type: string, description: "Base64 WAV." }
+        sample_rate: { type: integer, example: 24000 }
+
+    Transcription:
+      type: object
+      properties:
+        model: { type: string, example: speech-recognition }
+        text: { type: string, description: What was said. }
+        language: { type: string, example: ha }
+        audio_seconds: { type: number, description: Length of the audio sent. }
+
+    TranslateTextRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, maxLength: 2000, description: "The text to translate. Up to 2,000 characters." }
+        source: { $ref: "#/components/schemas/TranslateLanguage" }
+        target:
+          type: string
+          enum: [ha, fr]
+          default: fr
+          description: The language to translate into.
+        include_audio: { type: boolean, description: "Also return the translation spoken (base64 WAV)." }
+    Translation:
+      type: object
+      properties:
+        model: { type: string, example: translation }
+        source: { type: string, example: ha }
+        target: { type: string, example: fr }
+        source_text: { type: string, description: "The text sent, or what was heard in the audio." }
+        text: { type: string, description: The translation. }
+        characters: { type: integer, description: "Text requests: characters translated." }
+        audio_seconds: { type: number, description: "Audio requests: length of the audio sent." }
+        audio: { type: [string, "null"], description: "The translation spoken, base64 WAV, when asked for." }
+
+    ConverseTurn:
+      type: object
+      properties:
+        model: { type: string, example: voice-agent }
+        persona: { type: string, example: nadia }
+        session_id: { type: [string, "null"] }
+        heard: { type: string, description: What the person said, as text. }
+        reply: { type: string, description: The answer, as text. }
+        audio: { type: string, description: "The answer spoken, base64 WAV." }
+        sample_rate: { type: integer, example: 24000 }
+        audio_seconds: { type: number, description: "Audio sent plus the reply." }
+
+    Model:
+      type: object
+      properties:
+        id: { type: string, example: speech-synthesis }
+        task: { type: string, example: speech }
+        endpoint: { type: string, example: /v1/speech }
+        scope: { type: string, example: speech }
+        languages: { type: array, items: { type: string } }
+        status: { type: string, enum: [beta, research] }
+    Voice:
+      type: object
+      properties:
+        id: { type: string, example: nadia }
+        languages: { type: array, items: { type: string } }
+        language: { type: string, description: The voice's first language. }
+        description: { type: string }
+    Usage:
+      type: object
+      properties:
+        month_audio_seconds_used: { type: number }
+        month_audio_seconds_limit: { type: number }
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type: { type: string, description: "A stable code, such as `invalid_api_key`." }
+            message: { type: string, description: What happened, in plain words. }
+            request_id: { type: string }
+
+  responses:
+    BadRequest:
+      description: "The request was not usable: `invalid_request`, `invalid_json`, `missing_text`, `missing_file`, `empty_audio`, `unknown_voice`, `unsupported_language`, `unsupported_pair`, `unknown_persona`."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { error: { type: unknown_voice, message: "Unknown voice. Try one of: nadia, warm, fr, mouhamad.", request_id: 3f2a9c1e5b7d4e8fa0c2b6d9e1f3a5c7 } }
+    Unauthorized:
+      description: "No key, not a Namu key, or a revoked key: `missing_api_key`, `invalid_api_key`, `key_revoked`."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { error: { type: missing_api_key, message: "Send your key as 'Authorization: Bearer namu_sk_...'.", request_id: 3f2a9c1e5b7d4e8fa0c2b6d9e1f3a5c7 } }
+    Forbidden:
+      description: "`insufficient_scope` (the key may not call this endpoint) or `account_paused`."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    TooLarge:
+      description: "`payload_too_large` (over 25 MB), `audio_too_long` (over 300 s) or `text_too_long` (over 2,000 characters)."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    UnsupportedAudio:
+      description: "`unsupported_audio`: the file could not be read. Send WAV, MP3, M4A, AAC, OGG, WebM or FLAC."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NothingHeard:
+      description: "`nothing_heard`: no speech was found in the audio."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    TooManyRequests:
+      description: "`rate_limited` (too many requests this minute; see `Retry-After`) or `quota_exceeded` (this month's allowance is used)."
+      headers:
+        Retry-After:
+          description: Seconds to wait. Sent with `rate_limited` only.
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Upstream:
+      description: "`upstream_error`: the model did not answer. Try again; a request that fails counts nothing."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }

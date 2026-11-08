@@ -1,0 +1,77 @@
+---
+title: "Read messages aloud in Hausa"
+sidebarTitle: "Read aloud in Hausa"
+description: "Turn a list of messages into small audio files, generated once and reused."
+icon: "audio-lines"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Read messages aloud in Hausa" duration="8 min" />
+
+**You will build:** a script that reads a file of messages and saves each one as a small Opus file, skipping any message already spoken. Run it again after editing the list: only new or changed messages cost anything.
+
+**You will need:** Python 3.9+, `pip install namu-ai` ([Python library](/sdks/python)), and `NAMU_API_KEY` set.
+
+<Steps>
+  <Step title="Write the messages">
+    One message per line, in `messages.txt`:
+
+    ```text messages.txt
+    Ina kwana? Yau za a yi zafi sosai, don haka ku sha ruwa da yawa.
+    Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.
+    Kar ki manta, gobe da safe ki kawo jaririnki asibiti don allurar rigakafi.
+    ```
+  </Step>
+
+  <Step title="Speak each message once">
+    The file name is a fingerprint of the voice and the text, so the same message is never generated twice:
+
+    ```python speak_all.py
+    import hashlib
+    from pathlib import Path
+
+    from namu import Namu, NamuError
+
+    client = Namu()
+    out = Path("audio")
+    out.mkdir(exist_ok=True)
+    VOICE = "nadia"
+
+    for line in Path("messages.txt").read_text(encoding="utf-8").splitlines():
+        text = line.strip()
+        if not text:
+            continue
+        name = hashlib.sha256(f"{VOICE}:{text}".encode()).hexdigest()[:16] + ".ogg"
+        target = out / name
+        if target.exists():
+            print("kept   ", name)
+            continue
+        try:
+            target.write_bytes(client.speech(text, voice=VOICE, format="opus"))
+            print("spoken ", name, "←", text[:40])
+        except NamuError as e:
+            print("failed ", e.type, "←", text[:40])
+    ```
+  </Step>
+
+  <Step title="Run it">
+    ```bash
+    python speak_all.py
+    ```
+    Each file is a few dozen kilobytes: light enough to send over WhatsApp or play on 2G.
+  </Step>
+</Steps>
+
+## Make it yours
+
+- **Zarma:** set `VOICE = "mouhamad"`; he speaks Zarma unless told otherwise.
+- **MP3 for old phones:** `format="mp3"` and `.mp3` names.
+- **Serve the files** from your own storage or a CDN; never call the API once per listener.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Voice reminders for a health centre" icon="circle-play" href="/tutorials/voice-messages-for-a-clinic">Personal messages from templates</Card>
+  <Card title="Text to speech" icon="audio-lines" href="/capabilities/text-to-speech">Every option</Card>
+</CardGroup>

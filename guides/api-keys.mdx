@@ -1,0 +1,56 @@
+---
+title: "API keys"
+description: "Create keys, give each one only what it needs, and keep them off phones and web pages."
+icon: "key-round"
+---
+
+Every request that does work carries a secret key in the `Authorization` header:
+
+```http
+Authorization: Bearer namu_sk_...
+```
+
+A key is `namu_sk_` followed by 43 letters and digits. `GET /v1/models`, `/v1/voices` and `/v1/health` need no key.
+
+## Create a key
+
+1. Open [API keys](https://www.namuai-lab.com/account/keys) in the console (sign in or create an account first).
+2. Click **Create new secret key** and name it after where it will live: `clinic-reminders-server`, `staging`.
+3. Choose its **scopes** (below), then create it.
+4. Copy the key now. It is shown **once**: we keep a fingerprint of it, not the key, so we cannot show it again.
+
+An account can have up to 10 active keys.
+
+## Scopes
+
+A scope is permission to call one endpoint. Give a key only the scopes its code uses: if it leaks, that is all it can do.
+
+| Scope | Endpoint | On by default |
+| --- | --- | :---: |
+| `transcribe` | `POST /v1/transcribe` | ✓ |
+| `speech` | `POST /v1/speech` | ✓ |
+| `translate` | `POST /v1/translate` | ✓ |
+| `converse` | `POST /v1/converse` | Tick it |
+
+A call outside a key's scopes returns `403 insufficient_scope`.
+
+## Keep keys secret
+
+<Warning>
+  Never put a key in an Android or iOS app, in JavaScript that runs in a browser, or in a public repository. Apps can be unpacked and web pages read: anyone who finds the key can spend your allowance.
+</Warning>
+
+Call the Namu API **from your server**, and let your app talk to your server:
+
+```text
+phone app  ──►  your server (holds NAMU_API_KEY)  ──►  api.namuai-lab.com
+```
+
+Your server can also check who the user is, cache audio you send to many people, and apply your own limits. The [Android](/sdks/android) and [iOS](/sdks/ios) pages show this pattern.
+
+- Read the key from an environment variable or your host's secret store, never from a file in the repository.
+- Use a different key for each app and environment, so you can revoke one without stopping the others.
+
+## Revoke a key
+
+In the console, open **API keys** and revoke it. Requests with it stop within about 30 seconds and return `401 key_revoked`. Revoke a key at once if you think it was exposed, then create a new one.

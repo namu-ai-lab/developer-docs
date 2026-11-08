@@ -1,0 +1,73 @@
+---
+title: "Models"
+description: "Four models, one per task. What each one does, its languages, and how ready it is."
+icon: "layers"
+---
+
+Each endpoint has one model behind it, named after its task. You never pick a model in a request: call the endpoint and the API uses the model that serves it. The list is also live at [`GET /v1/models`](/api-reference/models-and-voices/list-models), which needs no key.
+
+<div className="namu-grid not-prose">
+  <a className="namu-tile" href="/capabilities/speech-to-text">
+    <span className="namu-tile-top"><span className="namu-tile-name">speech-recognition</span><span className="namu-status">Beta</span></span>
+    <span className="namu-tile-text">Writes down what was said. Hausa, Zarma and French.</span>
+    <code>POST /v1/transcribe · scope transcribe</code>
+  </a>
+  <a className="namu-tile" href="/capabilities/text-to-speech">
+    <span className="namu-tile-top"><span className="namu-tile-name">speech-synthesis</span><span className="namu-status">Beta</span></span>
+    <span className="namu-tile-text">Speaks text aloud with a chosen voice. Hausa, Zarma and French.</span>
+    <code>POST /v1/speech · scope speech</code>
+  </a>
+  <a className="namu-tile" href="/capabilities/translation">
+    <span className="namu-tile-top"><span className="namu-tile-name">translation</span><span className="namu-status">Beta</span></span>
+    <span className="namu-tile-text">Hausa ⇄ French, from text or from speech, with the result spoken if you ask.</span>
+    <code>POST /v1/translate · scope translate</code>
+  </a>
+  <a className="namu-tile" href="/capabilities/voice-agent">
+    <span className="namu-tile-top"><span className="namu-tile-name">voice-agent</span><span className="namu-status namu-status--research">Research</span></span>
+    <span className="namu-tile-text">Holds a spoken conversation in Hausa.</span>
+    <code>POST /v1/converse · scope converse</code>
+  </a>
+</div>
+
+## Languages by model
+
+| Model | Hausa `ha` | Zarma `dje` | French `fr` |
+| --- | :---: | :---: | :---: |
+| `speech-recognition` | ✓ | ✓ | ✓ |
+| `speech-synthesis` | ✓ | ✓ | ✓ |
+| `translation` | ✓ | | ✓ |
+| `voice-agent` | ✓ | | |
+
+Translation works between Hausa and French only, in both directions. Zarma translation is not in the API yet.
+
+## What the status means
+
+<AccordionGroup>
+  <Accordion title="Beta" icon="flask-conical">
+    Ready to build on, with real users, while we keep improving quality. The endpoint and its fields will not change without notice in the [changelog](/resources/changelog). Quality is measured and improving, so test with your own sentences and listeners before you rely on it for anything that matters.
+  </Accordion>
+  <Accordion title="Research" icon="microscope">
+    A preview of work in progress. Use it to explore and give us feedback, not for something people depend on. It can change, be slower, or answer in ways we are still learning about. New keys do not include its scope unless you tick it.
+  </Accordion>
+</AccordionGroup>
+
+## Older names
+
+On 7 November 2026 the models took the names of their tasks. If you see the old names in an older integration or message, they are the same models:
+
+| Today | Before 7 November 2026 |
+| --- | --- |
+| `speech-recognition` | `tatsuniya` |
+| `speech-synthesis` | `tafiya` |
+| `translation` | `kora` |
+| `voice-agent` | `air` |
+
+Requests never name a model, so nothing in your code needs to change.
+
+## Things to know
+
+- **Transcripts** come in lower case, without punctuation.
+- **Speech** comes back as WAV by default; ask for `opus` for the smallest files ([audio formats](/guides/audio-formats)).
+- **The first request after a quiet spell** is slower while the model wakes up. Allow up to a couple of minutes on that first call, and keep a generous timeout.
+- **Where the work happens.** `speech-recognition` and `speech-synthesis` run on Namu's own models. `translation` and the `voice-agent`'s replies are written by Google Gemini through OpenRouter, which receives the text they work on.
+- **Native review.** The Hausa and Zarma examples in these docs have not all been reviewed by native speakers yet. If you see a mistake, [tell us](/resources/support).

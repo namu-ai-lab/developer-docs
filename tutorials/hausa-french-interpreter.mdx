@@ -1,0 +1,112 @@
+---
+title: "Build a Hausa ⇄ French interpreter"
+sidebarTitle: "Hausa ⇄ French interpreter"
+description: "A web page where one person speaks Hausa, the other hears French, and back again."
+icon: "languages"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Build a Hausa ⇄ French interpreter" duration="12 min" />
+
+**You will build:** a one-page web app with two buttons, *Hausa → French* and *French → Hausa*. Hold a button, speak, release: the page shows what was understood, the translation, and plays it aloud. One API call per turn.
+
+**You will need:** Node 23.6+ to run the `.ts` file directly (or compile it), `npm install express multer namu-ai` ([JavaScript library](/sdks/javascript)), and `NAMU_API_KEY` set.
+
+<Steps>
+  <Step title="The server">
+    It receives the browser's recording, calls `/v1/translate` with `include_audio`, and returns the result. The key never leaves it.
+
+    ```typescript server.ts
+    import express from "express";
+    import multer from "multer";
+    import { Namu, NamuError } from "namu-ai";
+
+    const app = express();
+    const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 } });
+    const namu = new Namu();
+
+    app.use(express.static("public"));
+
+    app.post("/translate", upload.single("file"), async (req, res) => {
+      const source = req.body.source === "fr" ? "fr" : "ha";
+      const target = source === "ha" ? "fr" : "ha";
+      try {
+        const result = await namu.translate({ audio: req.file!.buffer }, { source, target, includeAudio: true });
+        res.json({ heard: result.source_text, text: result.text, audio: result.audio });
+      } catch (err) {
+        const type = err instanceof NamuError ? err.type : "unavailable";
+        res.status(err instanceof NamuError ? err.status : 502).json({ error: type });
+      }
+    });
+
+    app.listen(3000, () => console.log("http://localhost:3000"));
+    ```
+  </Step>
+
+  <Step title="The page">
+    The browser records with `MediaRecorder` (WebM Opus), which the API reads as it is.
+
+    ```html public/index.html
+    <!doctype html>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Interpreter</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 520px; margin: 40px auto; padding: 0 16px; }
+      button { font-size: 18px; padding: 18px; width: 100%; margin: 8px 0; border-radius: 16px; border: 0; background: #1c1410; color: #fffaf1; }
+      p { font-size: 18px; } .muted { color: #7a6352; }
+    </style>
+    <button data-source="ha">Hold to speak · Hausa → French</button>
+    <button data-source="fr">Hold to speak · French → Hausa</button>
+    <p class="muted" id="heard"></p>
+    <p id="text"></p>
+    <script>
+      let recorder, chunks = [];
+      for (const button of document.querySelectorAll("button")) {
+        button.onpointerdown = async () => {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          recorder = new MediaRecorder(stream);
+          chunks = [];
+          recorder.ondataavailable = (e) => chunks.push(e.data);
+          recorder.onstop = () => send(button.dataset.source, stream);
+          recorder.start();
+        };
+        button.onpointerup = () => recorder && recorder.state === "recording" && recorder.stop();
+      }
+      async function send(source, stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        const form = new FormData();
+        form.append("file", new Blob(chunks, { type: recorder.mimeType }), "speech.webm");
+        form.append("source", source);
+        document.getElementById("text").textContent = "…";
+        const r = await fetch("/translate", { method: "POST", body: form }).then((r) => r.json());
+        if (r.error) { document.getElementById("text").textContent = "Try again (" + r.error + ")"; return; }
+        document.getElementById("heard").textContent = r.heard;
+        document.getElementById("text").textContent = r.text;
+        if (r.audio) new Audio("data:audio/wav;base64," + r.audio).play();
+      }
+    </script>
+    ```
+  </Step>
+
+  <Step title="Run it">
+    ```bash
+    node server.ts
+    ```
+    Open `http://localhost:3000`, allow the microphone, hold a button and speak.
+  </Step>
+</Steps>
+
+## Before real people use it
+
+- Put your own sign-in in front of `/translate`, or anyone who finds the page spends your allowance.
+- Show `heard` so both people can see what was understood; that is often where a misunderstanding starts.
+- For health, legal or money conversations, keep a human interpreter in the loop.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Translation" icon="languages" href="/capabilities/translation">Every option</Card>
+  <Card title="Building for weak networks" icon="wifi-low" href="/guides/weak-networks">Make it work on 3G</Card>
+</CardGroup>

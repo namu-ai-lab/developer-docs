@@ -1,0 +1,39 @@
+---
+title: "Responsible use"
+description: "Voices carry trust. How to use the API so that the people who hear and speak to your app can keep trusting it."
+icon: "shield-check"
+---
+
+<Info>
+  This page is guidance for building well. What you agree to when you use the API is in the [terms of service](https://www.namuai-lab.com/terms) and the [privacy policy](https://www.namuai-lab.com/privacy).
+</Info>
+
+## Tell people it is AI
+
+When your app speaks with a Namu voice, let listeners know the voice is generated, the first time they hear it and wherever it matters: health, money, official or legal information. A short line is enough: *"This message is read by a computer voice."*
+
+## Ask before you listen
+
+Recordings sent to `/v1/transcribe`, `/v1/translate` and `/v1/converse` are people's voices and words. Translation and the voice agent pass the text they work on to Google Gemini through OpenRouter. Tell people their voice is sent to a service to be understood, get their agreement, and do not send recordings of people who did not agree, such as voice notes forwarded from others.
+
+## Do not use it to deceive or harm
+
+Do not use the API to:
+
+- **impersonate** a real person, an official or an organisation, or make people believe they hear someone they do not;
+- **defraud**, for example fake calls or messages about mobile money, prizes or debts;
+- **mislead people about elections**, public health or emergencies;
+- **harass, threaten or shame** anyone;
+- **make decisions about people** (health, credit, jobs, justice) from a transcript or translation without a person checking it.
+
+## Keep a person where mistakes hurt
+
+Speech recognition and translation make mistakes, more often with noise, names and numbers. Where a mistake could hurt someone, show the text back, ask for confirmation, or have a person check.
+
+## Respect the languages
+
+Have native speakers listen to the audio and read the transcripts your app produces before launch. Hausa, Zarma and French speakers will notice what a test script cannot, and they will tell you, and us, how to do better.
+
+## Report misuse
+
+If you see the API used to deceive or harm, write to [contact@namuai.org](mailto:contact@namuai.org).

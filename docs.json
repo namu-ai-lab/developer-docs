@@ -1,0 +1,301 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Namu API",
+  "description": "Speech recognition, speech synthesis, translation and a voice agent for Hausa, Zarma and French.",
+  "favicon": "/assets/logos/namu-favicon.svg",
+  "logo": {
+    "light": "/assets/logos/namu-docs-logo-dark.svg",
+    "dark": "/assets/logos/namu-docs-logo-light.svg",
+    "href": "/"
+  },
+  "colors": {
+    "primary": "#6B3E1E",
+    "light": "#E8A77B",
+    "dark": "#6B3E1E"
+  },
+  "background": {
+    "color": {
+      "light": "#FFFAF1",
+      "dark": "#1C1410"
+    }
+  },
+  "fonts": {
+    "family": "DM Sans"
+  },
+  "appearance": {
+    "default": "light"
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "styling": {
+    "eyebrows": "section",
+    "codeblocks": {
+      "theme": {
+        "light": "github-light",
+        "dark": "github-dark"
+      }
+    }
+  },
+  "banner": {
+    "content": "The Namu API is in beta: every account gets **30 free minutes of audio a month**. [Get a key →](https://www.namuai-lab.com/account/keys)",
+    "dismissible": true
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Namu AI Lab",
+        "href": "https://www.namuai-lab.com"
+      },
+      {
+        "label": "Console",
+        "href": "https://www.namuai-lab.com/account"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get an API key",
+      "href": "https://www.namuai-lab.com/account/keys"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
+  },
+  "api": {
+    "openapi": "api-reference/openapi.yaml",
+    "playground": {
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": [
+        "curl",
+        "python",
+        "javascript"
+      ],
+      "defaults": "required"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "quickstart",
+              "models",
+              "voices-and-languages",
+              "pricing-and-limits"
+            ]
+          },
+          {
+            "group": "Capabilities",
+            "pages": [
+              "capabilities/text-to-speech",
+              "capabilities/speech-to-text",
+              "capabilities/translation",
+              "capabilities/voice-agent"
+            ]
+          },
+          {
+            "group": "Building with Namu",
+            "pages": [
+              "guides/api-keys",
+              "guides/audio-formats",
+              "guides/weak-networks",
+              "guides/errors",
+              "guides/usage-and-rate-limits",
+              "guides/production-checklist"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "icon": "square-terminal",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication",
+              "api-reference/errors"
+            ]
+          },
+          {
+            "group": "Speech",
+            "openapi": "api-reference/openapi.yaml",
+            "pages": [
+              "POST /v1/speech"
+            ]
+          },
+          {
+            "group": "Transcription",
+            "openapi": "api-reference/openapi.yaml",
+            "pages": [
+              "POST /v1/transcribe"
+            ]
+          },
+          {
+            "group": "Translation",
+            "openapi": "api-reference/openapi.yaml",
+            "pages": [
+              "POST /v1/translate"
+            ]
+          },
+          {
+            "group": "Voice agent",
+            "openapi": "api-reference/openapi.yaml",
+            "pages": [
+              "POST /v1/converse"
+            ]
+          },
+          {
+            "group": "Models and voices",
+            "openapi": "api-reference/openapi.yaml",
+            "pages": [
+              "GET /v1/models",
+              "GET /v1/voices"
+            ]
+          },
+          {
+            "group": "Account",
+            "openapi": "api-reference/openapi.yaml",
+            "pages": [
+              "GET /v1/usage",
+              "GET /v1/health"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "icon": "package",
+        "groups": [
+          {
+            "group": "Libraries",
+            "pages": [
+              "sdks/overview",
+              "sdks/python",
+              "sdks/javascript",
+              "sdks/http"
+            ]
+          },
+          {
+            "group": "Mobile",
+            "pages": [
+              "sdks/android",
+              "sdks/ios"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Tutorials",
+        "icon": "circle-play",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "tutorials/index"
+            ]
+          },
+          {
+            "group": "First steps",
+            "pages": [
+              "tutorials/first-call",
+              "tutorials/read-aloud-in-hausa",
+              "tutorials/transcribe-a-voice-note"
+            ]
+          },
+          {
+            "group": "Build",
+            "pages": [
+              "tutorials/hausa-french-interpreter",
+              "tutorials/voice-messages-for-a-clinic",
+              "tutorials/talk-to-the-voice-agent",
+              "tutorials/watch-your-usage"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "icon": "life-buoy",
+        "groups": [
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/changelog",
+              "resources/support",
+              "resources/responsible-use",
+              "resources/glossary"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "website": "https://www.namuai-lab.com"
+    },
+    "links": [
+      {
+        "header": "Namu API",
+        "items": [
+          {
+            "label": "Get an API key",
+            "href": "https://www.namuai-lab.com/account/keys"
+          },
+          {
+            "label": "Usage",
+            "href": "https://www.namuai-lab.com/account/usage"
+          },
+          {
+            "label": "Changelog",
+            "href": "/resources/changelog"
+          }
+        ]
+      },
+      {
+        "header": "Namu AI Lab",
+        "items": [
+          {
+            "label": "Research",
+            "href": "https://www.namuai-lab.com/research"
+          },
+          {
+            "label": "Privacy",
+            "href": "https://www.namuai-lab.com/privacy"
+          },
+          {
+            "label": "Terms",
+            "href": "https://www.namuai-lab.com/terms"
+          }
+        ]
+      }
+    ]
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "Namu API"
+    }
+  },
+  "errors": {
+    "404": {
+      "redirect": false,
+      "title": "This page is not here",
+      "description": "It may have moved. Start again from the [overview](/)."
+    }
+  }
+}

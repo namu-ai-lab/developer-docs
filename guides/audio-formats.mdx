@@ -1,0 +1,71 @@
+---
+title: "Audio formats"
+description: "What the API accepts, what it returns, and how to keep files small."
+icon: "file-music"
+---
+
+## Audio you send
+
+`/v1/transcribe`, `/v1/translate` and `/v1/converse` read the container from the file's first bytes, so the file name and content type do not matter.
+
+| Container | Codecs | Where it comes from |
+| --- | --- | --- |
+| OGG | Opus | WhatsApp and Telegram voice notes, Android |
+| M4A, MP4, 3GP, AAC | AAC | iPhone voice memos, many Android recorders |
+| MP3 | MP3 | Radio clips, downloads |
+| WAV | PCM | Computers, studio recorders |
+| WebM | Opus | Browsers (`MediaRecorder`) |
+| FLAC | FLAC | Archives |
+
+Up to **25 MB** and **300 seconds** per request. Mono or stereo, any sample rate.
+
+### Two ways to send it
+
+<Tabs>
+  <Tab title="Multipart form">
+    The usual way. The file goes in a field named `file`, the options beside it.
+
+    ```bash
+    curl https://api.namuai-lab.com/v1/transcribe \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      -F file=@note.ogg -F language=ha
+    ```
+  </Tab>
+  <Tab title="Raw body">
+    The bytes are the whole body; options go in the query string. Handy when the audio is already in memory.
+
+    ```bash
+    curl "https://api.namuai-lab.com/v1/transcribe?language=ha" \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      --data-binary @note.ogg
+    ```
+  </Tab>
+</Tabs>
+
+## Audio you get back
+
+`/v1/speech` returns what you ask for with `format`:
+
+| `format` | Content type | Details | Size of 10 seconds |
+| --- | --- | --- | --- |
+| `wav` (default) | `audio/wav` | 24 kHz, 16-bit PCM, mono | about 480 KB |
+| `mp3` | `audio/mpeg` | 64 kbit/s, mono | about 80 KB |
+| `opus` | `audio/ogg` | Ogg Opus, 48 kHz, 32 kbit/s, mono | about 40 KB |
+| `json` | `application/json` | base64 WAV in `audio` | about 640 KB |
+
+`/v1/translate` (with `include_audio`) and `/v1/converse` return the spoken answer as base64 WAV in the JSON.
+
+<Tip>
+  For people on mobile data, ask for `opus`: it is a twelfth of the size of WAV and plays in Chrome, Firefox, Android and WhatsApp. For Safari on older iPhones, use `mp3`.
+</Tip>
+
+## Long recordings
+
+A request takes up to 5 minutes of audio. For longer recordings, cut them into pieces at silences and send the pieces in order:
+
+```bash
+# Cut into 4-minute pieces with ffmpeg, without re-encoding
+ffmpeg -i meeting.m4a -f segment -segment_time 240 -c copy piece-%03d.m4a
+```
+
+Then transcribe `piece-000.m4a`, `piece-001.m4a`, … and join the texts. A cut in the middle of a word can lose that word; cutting at a pause (for example with `ffmpeg`'s `silencedetect`) avoids it.

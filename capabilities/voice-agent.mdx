@@ -1,0 +1,115 @@
+---
+title: "Voice agent"
+description: "A spoken conversation in Hausa: send what someone said, get back the reply as text and as speech."
+icon: "message-circle"
+tag: "RESEARCH"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<Warning>
+  The voice agent is a **research preview**. Use it to explore and to tell us what you need, not for anything people depend on. Its answers can be wrong, and it may change without the notice we give for beta models.
+</Warning>
+
+<VideoSlot title="Talking with the voice agent" duration="7 min" />
+
+## Overview
+
+`POST /v1/converse` runs one turn of a conversation. You send what the person said; the API returns what it heard, a reply written in Hausa, and the reply spoken by Nadia. Play the audio, record the next thing the person says, and send it again.
+
+- **Model:** `voice-agent` (research)
+- **Language:** Hausa
+- **Persona:** `nadia`
+- **Counts:** the audio you send plus the spoken reply
+
+The words heard are sent to **Google Gemini through OpenRouter**, which writes the reply; Namu keeps no conversation, only metadata about each call (duration, status, timing).
+
+## Turn on the scope
+
+New keys do not include the `converse` scope. When you create a key in the [console](https://www.namuai-lab.com/account/keys), tick **Voice agent**. A key without it gets `403 insufficient_scope`.
+
+## One turn
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/converse \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@hello.ogg \
+    -F session_id=demo-42
+  ```
+
+  ```python Python
+  import base64
+  import os
+  import requests
+
+  with open("hello.ogg", "rb") as audio:
+      turn = requests.post(
+          "https://api.namuai-lab.com/v1/converse",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          files={"file": audio},
+          data={"session_id": "demo-42"},
+          timeout=300,
+      ).json()
+
+  print("Heard:", turn["heard"])
+  print("Reply:", turn["reply"])
+  open("reply.wav", "wb").write(base64.b64decode(turn["audio"]))
+  ```
+
+  ```javascript JavaScript
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("hello.ogg")]), "hello.ogg");
+  form.append("session_id", "demo-42");
+
+  const turn = await fetch("https://api.namuai-lab.com/v1/converse", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: form,
+  }).then((r) => r.json());
+
+  await writeFile("reply.wav", Buffer.from(turn.audio, "base64"));
+  ```
+</CodeGroup>
+
+```json Response
+{
+  "model": "voice-agent",
+  "persona": "nadia",
+  "session_id": "demo-42",
+  "heard": "sannu yaya kike",
+  "reply": "Lafiya lau, na gode. Me zan iya taimaka maka da shi?",
+  "audio": "UklGRiQAAABXQVZFZm10IBAAAAABAAEAwF0AAIC7AAACABAAZGF0YQAAAAA...",
+  "sample_rate": 24000,
+  "audio_seconds": 5.8
+}
+```
+
+## Request
+
+<ParamField body="file" type="file" required>
+  What the person said. Any format [speech to text](/capabilities/speech-to-text#supported-audio) accepts.
+</ParamField>
+
+<ParamField body="persona" type="string" default="nadia">
+  Who answers. `nadia` is the only persona.
+</ParamField>
+
+<ParamField body="session_id" type="string">
+  Your own id for the conversation, up to 100 characters. It comes back in the answer so you can match turns; the API never stores it.
+</ParamField>
+
+## What it does not do yet
+
+- **No memory between turns.** Each request stands alone; the API does not keep the conversation.
+- **No streaming.** The reply arrives once it is ready, as a whole file.
+- **Hausa only.**
+
+If no speech is found in the recording, the answer is `422 nothing_heard`: ask the person to speak again.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Talk to the voice agent" icon="circle-play" href="/tutorials/talk-to-the-voice-agent">Tutorial</Card>
+  <Card title="API reference" icon="square-terminal" href="/api-reference/voice-agent/converse">POST /v1/converse</Card>
+</CardGroup>
