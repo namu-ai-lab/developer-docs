@@ -156,7 +156,7 @@
 }
 
 /* the logo: the brand mark is drawn on a wide canvas, so give it room in the navigation */
-img.nav-logo { height: 34px !important; max-width: none !important; }
+img.nav-logo { height: 34px !important; width: auto !important; max-width: none !important; }
 
 /* ---------- the frame, after developers.openai.com ----------
    A full-width header, then a grey band holding the section tabs, centred, the current one underlined; a quiet
