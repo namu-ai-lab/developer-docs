@@ -1,0 +1,77 @@
+---
+title: "Lire des messages à voix haute en haoussa"
+sidebarTitle: "Lire à voix haute en haoussa"
+description: "Transformez une liste de messages en petits fichiers audio, générés une fois et réutilisés."
+icon: "audio-lines"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Lire des messages à voix haute en haoussa" duration="8 min" lang="fr" />
+
+**Ce que vous allez construire :** un script qui lit un fichier de messages et enregistre chacun dans un petit fichier Opus, en sautant les messages déjà dits. Relancez-le après avoir modifié la liste : seuls les messages nouveaux ou modifiés coûtent quelque chose.
+
+**Ce qu’il vous faut :** Python 3.9 ou plus récent, `pip install namu-ai` ([bibliothèque Python](/fr/sdks/python)), et la variable `NAMU_API_KEY` définie.
+
+<Steps>
+  <Step title="Écrire les messages">
+    Un message par ligne, dans `messages.txt` :
+
+    ```text messages.txt
+    Ina kwana? Yau za a yi zafi sosai, don haka ku sha ruwa da yawa.
+    Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.
+    Kar ki manta, gobe da safe ki kawo jaririnki asibiti don allurar rigakafi.
+    ```
+  </Step>
+
+  <Step title="Dire chaque message une seule fois">
+    Le nom du fichier est une empreinte de la voix et du texte, si bien que le même message n’est jamais généré deux fois :
+
+    ```python speak_all.py
+    import hashlib
+    from pathlib import Path
+
+    from namu import Namu, NamuError
+
+    client = Namu()
+    out = Path("audio")
+    out.mkdir(exist_ok=True)
+    VOICE = "nadia"
+
+    for line in Path("messages.txt").read_text(encoding="utf-8").splitlines():
+        text = line.strip()
+        if not text:
+            continue
+        name = hashlib.sha256(f"{VOICE}:{text}".encode()).hexdigest()[:16] + ".ogg"
+        target = out / name
+        if target.exists():
+            print("kept   ", name)
+            continue
+        try:
+            target.write_bytes(client.speech(text, voice=VOICE, format="opus"))
+            print("spoken ", name, "←", text[:40])
+        except NamuError as e:
+            print("failed ", e.type, "←", text[:40])
+    ```
+  </Step>
+
+  <Step title="Le lancer">
+    ```bash
+    python speak_all.py
+    ```
+    Chaque fichier fait quelques dizaines de kilo-octets : assez léger pour être envoyé sur WhatsApp ou écouté en 2G.
+  </Step>
+</Steps>
+
+## Adaptez-le
+
+- **Zarma :** mettez `VOICE = "mouhamad"` ; il parle zarma sauf indication contraire.
+- **MP3 pour les anciens téléphones :** `format="mp3"` et des noms en `.mp3`.
+- **Servez les fichiers** depuis votre propre stockage ou un CDN ; n’appelez jamais l’API une fois par auditeur.
+
+## Pour aller plus loin
+
+<CardGroup cols={2}>
+  <Card title="Rappels vocaux pour un centre de santé" icon="circle-play" href="/fr/tutorials/voice-messages-for-a-clinic">Des messages personnels à partir de modèles</Card>
+  <Card title="Synthèse vocale" icon="audio-lines" href="/fr/capabilities/text-to-speech">Toutes les options</Card>
+</CardGroup>

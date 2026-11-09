@@ -1,0 +1,44 @@
+---
+title: "Référence de l’API"
+sidebarTitle: "Introduction"
+description: "Chaque point d’accès, champ et réponse de l’API Namu. Essayez-les depuis cette page avec votre propre clé."
+icon: "square-terminal"
+---
+
+## URL de base
+
+```text
+https://api.namuai-lab.com
+```
+
+Tous les points d’accès se trouvent sous `/v1`. Les requêtes et les réponses passent uniquement par HTTPS.
+
+## Points d’accès
+
+| Méthode | Point d’accès | Ce qu’il fait | Clé |
+| --- | --- | --- | :---: |
+| `POST` | [`/v1/speech`](/fr/api-reference/speech/create-speech) | Synthèse vocale | ✓ |
+| `POST` | [`/v1/transcribe`](/fr/api-reference/transcription/create-transcription) | Transcription | ✓ |
+| `POST` | [`/v1/translate`](/fr/api-reference/translation/create-translation) | Haoussa ⇄ français, texte ou parole | ✓ |
+| `POST` | [`/v1/converse`](/fr/api-reference/voice-agent/converse) | Un tour de parole avec l’agent vocal (recherche) | ✓ |
+| `GET` | [`/v1/models`](/fr/api-reference/models-and-voices/list-models) | Les modèles et leurs langues | |
+| `GET` | [`/v1/voices`](/fr/api-reference/models-and-voices/list-voices) | Les voix | |
+| `GET` | [`/v1/usage`](/fr/api-reference/account/get-usage) | Votre consommation ce mois-ci | ✓ |
+| `GET` | [`/v1/health`](/fr/api-reference/account/health) | Indique si l’API répond | |
+
+## Conventions
+
+- **Authentification :** `Authorization: Bearer namu_sk_...`. Voir [Authentification](/fr/api-reference/authentication).
+- **Corps :** du JSON pour le texte (`/v1/speech`, traduction de texte) ; pour l’audio, du multipart avec un champ `file`, ou l’audio brut comme corps.
+- **Erreurs :** toujours `{"error": {"type", "message", "request_id"}}`. Voir [Erreurs](/fr/api-reference/errors).
+- **Identifiants de requête :** chaque réponse porte un en-tête `X-Request-Id`.
+- **Pas encore de diffusion en continu :** chaque réponse arrive en entier.
+- **Versions :** la version figure dans le chemin (`/v1`). Des champs peuvent être ajoutés aux réponses à tout moment ; tout ce qui casserait une intégration est annoncé à l’avance dans l’[historique des versions](/fr/resources/changelog).
+
+## OpenAPI
+
+La référence est générée à partir d’une description OpenAPI 3.1 de l’API. Téléchargez-la pour générer un client dans votre langage, ou importez-la dans Postman, Insomnia ou Bruno :
+
+<Card title="openapi.yaml" icon="file-code" href="/fr/api-reference/openapi.yaml">
+  L’API Namu en OpenAPI 3.1.
+</Card>

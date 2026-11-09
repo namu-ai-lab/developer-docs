@@ -1,0 +1,39 @@
+---
+title: "Usage responsable"
+description: "Les voix inspirent confiance. Comment utiliser l’API pour que les personnes qui écoutent votre application et lui parlent puissent continuer à lui faire confiance."
+icon: "shield-check"
+---
+
+<Info>
+  Cette page donne des conseils pour bien construire. Ce que vous acceptez en utilisant l’API figure dans les [conditions d’utilisation](https://www.namuai-lab.com/fr/terms) et la [politique de confidentialité](https://www.namuai-lab.com/fr/privacy).
+</Info>
+
+## Dites que c’est de l’IA
+
+Quand votre application parle avec une voix Namu, faites savoir aux auditeurs que la voix est générée, la première fois qu’ils l’entendent et partout où cela compte : santé, argent, informations officielles ou juridiques. Une courte phrase suffit : « *Ce message est lu par une voix de synthèse.* »
+
+## Demandez avant d’écouter
+
+Les enregistrements envoyés à `/v1/transcribe`, `/v1/translate` et `/v1/converse` sont les voix et les paroles de personnes. La traduction et l’agent vocal transmettent le texte qu’ils traitent à Google Gemini via OpenRouter. Dites aux personnes que leur voix est envoyée à un service pour être comprise, obtenez leur accord, et n’envoyez pas d’enregistrements de personnes qui n’ont pas donné leur accord, comme des notes vocales transférées par d’autres.
+
+## Ne l’utilisez pas pour tromper ou nuire
+
+N’utilisez pas l’API pour :
+
+- **usurper l’identité** d’une personne réelle, d’un représentant officiel ou d’une organisation, ou faire croire aux gens qu’ils entendent quelqu’un qu’ils n’entendent pas ;
+- **escroquer**, par exemple avec de faux appels ou de faux messages sur le mobile money, des gains ou des dettes ;
+- **tromper les gens sur les élections**, la santé publique ou les situations d’urgence ;
+- **harceler, menacer ou humilier** qui que ce soit ;
+- **prendre des décisions sur des personnes** (santé, crédit, emploi, justice) à partir d’une transcription ou d’une traduction sans qu’une personne la vérifie.
+
+## Gardez un humain là où les erreurs font mal
+
+La reconnaissance vocale et la traduction font des erreurs, plus souvent avec du bruit, des noms et des nombres. Là où une erreur pourrait nuire à quelqu’un, réaffichez le texte, demandez une confirmation, ou faites vérifier par une personne.
+
+## Respectez les langues
+
+Avant le lancement, faites écouter l’audio et lire les transcriptions produits par votre application à des locuteurs natifs. Les locuteurs du haoussa, du zarma et du français remarqueront ce qu’un script de test ne peut pas voir, et ils vous diront, à vous comme à nous, comment faire mieux.
+
+## Signaler un abus
+
+Si vous voyez l’API utilisée pour tromper ou nuire, écrivez à [contact@namuai.org](mailto:contact@namuai.org).

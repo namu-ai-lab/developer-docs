@@ -1,0 +1,48 @@
+---
+title: "Tarifs et limites"
+description: "Gratuit pendant la bêta : 30 minutes d’audio par mois pour chaque compte. Voici comment elles sont comptées, et les limites de chaque requête."
+icon: "gauge"
+---
+
+## Gratuit pendant la bêta
+
+Chaque compte reçoit **1 800 secondes (30 minutes) d’audio par mois**, gratuitement. Le compteur repart à zéro le premier jour de chaque mois (UTC). Il n’y a pas de carte à saisir, et pas encore d’offre payante. S’il vous en faut plus pour un projet pilote, [écrivez-nous](/fr/resources/support) en décrivant ce que vous construisez.
+
+## Ce qui est compté
+
+La consommation est comptée en **secondes d’audio**, la même unité pour tous les points d’accès :
+
+| Requête | Ce qui est compté |
+| --- | --- |
+| `POST /v1/transcribe` | la durée de l’audio que vous envoyez |
+| `POST /v1/speech` | la durée de l’audio que vous recevez |
+| `POST /v1/translate` avec de l’audio | la durée de l’audio que vous envoyez |
+| `POST /v1/translate` avec du texte | le nombre de caractères ÷ 15, plus la traduction parlée si vous la demandez |
+| `POST /v1/converse` | l’audio que vous envoyez, plus la réponse parlée |
+| Requêtes `GET` | rien |
+
+**Une requête qui échoue ne compte rien.** Le quota est vérifié avant chaque requête : la dernière requête d’un mois peut donc vous faire dépasser un peu le quota.
+
+Voyez où vous en êtes dans la [console](https://www.namuai-lab.com/fr/account/usage), ou dans le code avec [`GET /v1/usage`](/fr/api-reference/account/get-usage) :
+
+```json
+{ "month_audio_seconds_used": 312.4, "month_audio_seconds_limit": 1800.0 }
+```
+
+Quand le quota du mois est épuisé, les requêtes renvoient `429 quota_exceeded` jusqu’au mois suivant.
+
+## Limites de chaque requête
+
+| Limite | Valeur | Erreur en cas de dépassement |
+| --- | --- | --- |
+| Taille du fichier audio | 25 Mo | `413 payload_too_large` |
+| Durée de l’audio | 300 secondes (5 minutes) | `413 audio_too_long` |
+| Longueur du texte | 2 000 caractères | `413 text_too_long` |
+| Requêtes par clé | 60 par minute par défaut | `429 rate_limited`, avec `Retry-After` |
+| Clés actives par compte | 10 | affichée dans la console |
+
+Chaque requête compte dans la limite par minute, y compris une requête refusée pour un corps invalide. Pour des enregistrements plus longs, coupez-les en morceaux de moins de cinq minutes ([comment faire](/fr/guides/audio-formats#enregistrements-longs)).
+
+<Tip>
+  Besoin d’une limite de débit plus haute pour un lancement ou un projet pilote ? Nous pouvons la relever clé par clé. [Demandez-nous](/fr/resources/support).
+</Tip>

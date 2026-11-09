@@ -1,0 +1,112 @@
+---
+title: "Construire un interprète haoussa ⇄ français"
+sidebarTitle: "Interprète haoussa ⇄ français"
+description: "Une page web où une personne parle haoussa, l’autre entend du français, et inversement."
+icon: "languages"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Construire un interprète haoussa ⇄ français" duration="12 min" lang="fr" />
+
+**Ce que vous allez construire :** une application web d’une seule page avec deux boutons, l’un pour passer du haoussa au français, l’autre du français au haoussa. Maintenez un bouton, parlez, relâchez : la page affiche ce qui a été compris et la traduction, puis la lit à voix haute. Un seul appel d’API par tour.
+
+**Ce qu’il vous faut :** Node 23.6 ou plus récent pour exécuter directement le fichier `.ts` (ou compilez-le), `npm install express multer namu-ai` ([bibliothèque JavaScript](/fr/sdks/javascript)), et la variable `NAMU_API_KEY` définie.
+
+<Steps>
+  <Step title="Le serveur">
+    Il reçoit l’enregistrement du navigateur, appelle `/v1/translate` avec `include_audio`, et renvoie le résultat. La clé ne le quitte jamais.
+
+    ```typescript server.ts
+    import express from "express";
+    import multer from "multer";
+    import { Namu, NamuError } from "namu-ai";
+
+    const app = express();
+    const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 } });
+    const namu = new Namu();
+
+    app.use(express.static("public"));
+
+    app.post("/translate", upload.single("file"), async (req, res) => {
+      const source = req.body.source === "fr" ? "fr" : "ha";
+      const target = source === "ha" ? "fr" : "ha";
+      try {
+        const result = await namu.translate({ audio: req.file!.buffer }, { source, target, includeAudio: true });
+        res.json({ heard: result.source_text, text: result.text, audio: result.audio });
+      } catch (err) {
+        const type = err instanceof NamuError ? err.type : "unavailable";
+        res.status(err instanceof NamuError ? err.status : 502).json({ error: type });
+      }
+    });
+
+    app.listen(3000, () => console.log("http://localhost:3000"));
+    ```
+  </Step>
+
+  <Step title="La page">
+    Le navigateur enregistre avec `MediaRecorder` (WebM Opus), que l’API lit tel quel.
+
+    ```html public/index.html
+    <!doctype html>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Interpreter</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 520px; margin: 40px auto; padding: 0 16px; }
+      button { font-size: 18px; padding: 18px; width: 100%; margin: 8px 0; border-radius: 16px; border: 0; background: #1c1410; color: #fffaf1; }
+      p { font-size: 18px; } .muted { color: #7a6352; }
+    </style>
+    <button data-source="ha">Hold to speak · Hausa → French</button>
+    <button data-source="fr">Hold to speak · French → Hausa</button>
+    <p class="muted" id="heard"></p>
+    <p id="text"></p>
+    <script>
+      let recorder, chunks = [];
+      for (const button of document.querySelectorAll("button")) {
+        button.onpointerdown = async () => {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          recorder = new MediaRecorder(stream);
+          chunks = [];
+          recorder.ondataavailable = (e) => chunks.push(e.data);
+          recorder.onstop = () => send(button.dataset.source, stream);
+          recorder.start();
+        };
+        button.onpointerup = () => recorder && recorder.state === "recording" && recorder.stop();
+      }
+      async function send(source, stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        const form = new FormData();
+        form.append("file", new Blob(chunks, { type: recorder.mimeType }), "speech.webm");
+        form.append("source", source);
+        document.getElementById("text").textContent = "…";
+        const r = await fetch("/translate", { method: "POST", body: form }).then((r) => r.json());
+        if (r.error) { document.getElementById("text").textContent = "Try again (" + r.error + ")"; return; }
+        document.getElementById("heard").textContent = r.heard;
+        document.getElementById("text").textContent = r.text;
+        if (r.audio) new Audio("data:audio/wav;base64," + r.audio).play();
+      }
+    </script>
+    ```
+  </Step>
+
+  <Step title="Le lancer">
+    ```bash
+    node server.ts
+    ```
+    Ouvrez `http://localhost:3000`, autorisez le micro, maintenez un bouton et parlez.
+  </Step>
+</Steps>
+
+## Avant que de vraies personnes s’en servent
+
+- Placez votre propre système de connexion devant `/translate`, sinon quiconque trouve la page consomme votre quota.
+- Affichez `heard` pour que les deux personnes voient ce qui a été compris : c’est souvent là que commence un malentendu.
+- Pour les conversations de santé, juridiques ou d’argent, gardez un interprète humain dans la boucle.
+
+## Pour aller plus loin
+
+<CardGroup cols={2}>
+  <Card title="Traduction" icon="languages" href="/fr/capabilities/translation">Toutes les options</Card>
+  <Card title="Concevoir pour les réseaux faibles" icon="wifi-low" href="/fr/guides/weak-networks">Faites-le fonctionner en 3G</Card>
+</CardGroup>

@@ -1,0 +1,115 @@
+---
+title: "Agent vocal"
+description: "Une conversation parlée en haoussa : envoyez ce qu’une personne a dit, recevez la réponse en texte et en parole."
+icon: "message-circle"
+tag: "RECHERCHE"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<Warning>
+  L’agent vocal est un **aperçu de recherche**. Servez-vous-en pour explorer et pour nous dire ce dont vous avez besoin, pas pour quoi que ce soit dont des personnes dépendent. Ses réponses peuvent être fausses, et il peut changer sans le préavis que nous donnons pour les modèles en bêta.
+</Warning>
+
+<VideoSlot title="Converser avec l’agent vocal" duration="7 min" lang="fr" />
+
+## Vue d’ensemble
+
+`POST /v1/converse` traite un tour de conversation. Vous envoyez ce que la personne a dit ; l’API renvoie ce qu’elle a entendu, une réponse écrite en haoussa, et cette réponse dite par Nadia. Faites écouter l’audio, enregistrez ce que la personne dit ensuite, et envoyez-le à nouveau.
+
+- **Modèle :** `voice-agent` (recherche)
+- **Langue :** haoussa
+- **Personnage :** `nadia`
+- **Ce qui est compté :** l’audio que vous envoyez plus la réponse parlée
+
+Les mots entendus sont envoyés à **Google Gemini via OpenRouter**, qui rédige la réponse ; Namu ne conserve aucune conversation, seulement des métadonnées sur chaque appel (durée, statut, temps de réponse).
+
+## Activer la permission
+
+Les nouvelles clés n’incluent pas la permission `converse`. Quand vous créez une clé dans la [console](https://www.namuai-lab.com/fr/account/keys), cochez **Agent vocal**. Une clé sans cette permission reçoit `403 insufficient_scope`.
+
+## Un tour de parole
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/converse \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@hello.ogg \
+    -F session_id=demo-42
+  ```
+
+  ```python Python
+  import base64
+  import os
+  import requests
+
+  with open("hello.ogg", "rb") as audio:
+      turn = requests.post(
+          "https://api.namuai-lab.com/v1/converse",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          files={"file": audio},
+          data={"session_id": "demo-42"},
+          timeout=300,
+      ).json()
+
+  print("Heard:", turn["heard"])
+  print("Reply:", turn["reply"])
+  open("reply.wav", "wb").write(base64.b64decode(turn["audio"]))
+  ```
+
+  ```javascript JavaScript
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("hello.ogg")]), "hello.ogg");
+  form.append("session_id", "demo-42");
+
+  const turn = await fetch("https://api.namuai-lab.com/v1/converse", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: form,
+  }).then((r) => r.json());
+
+  await writeFile("reply.wav", Buffer.from(turn.audio, "base64"));
+  ```
+</CodeGroup>
+
+```json Réponse
+{
+  "model": "voice-agent",
+  "persona": "nadia",
+  "session_id": "demo-42",
+  "heard": "sannu yaya kike",
+  "reply": "Lafiya lau, na gode. Me zan iya taimaka maka da shi?",
+  "audio": "UklGRiQAAABXQVZFZm10IBAAAAABAAEAwF0AAIC7AAACABAAZGF0YQAAAAA...",
+  "sample_rate": 24000,
+  "audio_seconds": 5.8
+}
+```
+
+## Requête
+
+<ParamField body="file" type="file" required>
+  Ce que la personne a dit. Tout format accepté par la [transcription](/fr/capabilities/speech-to-text#audio-pris-en-charge).
+</ParamField>
+
+<ParamField body="persona" type="string" default="nadia">
+  Qui répond. `nadia` est le seul personnage.
+</ParamField>
+
+<ParamField body="session_id" type="string">
+  Votre propre identifiant pour la conversation, jusqu’à 100 caractères. Il revient dans la réponse pour que vous puissiez associer les tours ; l’API ne le conserve jamais.
+</ParamField>
+
+## Ce qu’il ne fait pas encore
+
+- **Pas de mémoire d’un tour à l’autre.** Chaque requête est indépendante ; l’API ne garde pas la conversation.
+- **Pas de diffusion en continu.** La réponse arrive quand elle est prête, en un seul fichier.
+- **Haoussa uniquement.**
+
+Si aucune parole n’est trouvée dans l’enregistrement, la réponse est `422 nothing_heard` : demandez à la personne de parler à nouveau.
+
+## Voir aussi
+
+<CardGroup cols={2}>
+  <Card title="Parler à l’agent vocal" icon="circle-play" href="/fr/tutorials/talk-to-the-voice-agent">Tutoriel</Card>
+  <Card title="Référence de l’API" icon="square-terminal" href="/fr/api-reference/voice-agent/converse">POST /v1/converse</Card>
+</CardGroup>

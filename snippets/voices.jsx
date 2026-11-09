@@ -12,6 +12,7 @@ export const VOICES = [
     name: "Nadia",
     languages: ["ha"],
     description: "Warm and patient. Female, Hausa.",
+    description_fr: "Chaleureuse et patiente. Voix féminine, haoussa.",
     alias: "warm",
     sample: {
       lang: "ha",
@@ -24,6 +25,7 @@ export const VOICES = [
     name: "Mouhamad",
     languages: ["dje", "ha"],
     description: "Male. Zarma first, and Hausa.",
+    description_fr: "Voix masculine. Zarma d’abord, et haoussa.",
     sample: {
       lang: "dje",
       src: `${SITE}/voices/mouhamad/dje.m4a`,
@@ -35,6 +37,7 @@ export const VOICES = [
     name: "Français",
     languages: ["fr"],
     description: "The French reference voice.",
+    description_fr: "La voix de référence en français.",
     sample: {
       lang: "fr",
       src: `${SITE}/usecases/translation-fr-story.m4a`,
@@ -43,9 +46,13 @@ export const VOICES = [
   },
 ];
 
-const LANG = { ha: "Hausa", dje: "Zarma", fr: "French" };
+const LANGS = {
+  en: { ha: "Hausa", dje: "Zarma", fr: "French", play: "Play", pause: "Pause" },
+  fr: { ha: "Haoussa", dje: "Zarma", fr: "Français", play: "Écouter", pause: "Pause" },
+};
 
-export const VoiceCard = ({ voice }) => {
+export const VoiceCard = ({ voice, lang = "en" }) => {
+  const LANG = LANGS[lang] || LANGS.en;
   const audio = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -62,7 +69,7 @@ export const VoiceCard = ({ voice }) => {
           type="button"
           className="namu-voice-play"
           onClick={toggle}
-          aria-label={`${playing ? "Pause" : "Play"} ${voice.name} (${LANG[voice.sample.lang]})`}
+          aria-label={`${playing ? LANG.pause : LANG.play} ${voice.name} (${LANG[voice.sample.lang]})`}
         >
           {playing ? (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
@@ -82,7 +89,7 @@ export const VoiceCard = ({ voice }) => {
           return <rect key={i} x={i * 5 + 1} y={(40 - h) / 2} width="3" height={h} rx="1.5" className={done ? "is-done" : ""} />;
         })}
       </svg>
-      <p className="namu-voice-text">{voice.description}</p>
+      <p className="namu-voice-text">{lang === "fr" && voice.description_fr ? voice.description_fr : voice.description}</p>
       <div className="namu-voice-langs">
         {voice.languages.map((l) => (
           <span key={l} className="namu-chip">{LANG[l]} <code>{l}</code></span>
@@ -102,8 +109,8 @@ export const VoiceCard = ({ voice }) => {
   );
 };
 
-export const VoiceGallery = () => (
+export const VoiceGallery = ({ lang = "en" }) => (
   <div className="namu-voice-grid not-prose">
-    {VOICES.map((v) => <VoiceCard key={v.id} voice={v} />)}
+    {VOICES.map((v) => <VoiceCard key={v.id} voice={v} lang={lang} />)}
   </div>
 );

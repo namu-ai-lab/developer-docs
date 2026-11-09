@@ -1,0 +1,72 @@
+---
+title: "Transcrire une note vocale WhatsApp"
+sidebarTitle: "Transcrire une note vocale"
+description: "D’une note vocale sur votre téléphone à du texte sur votre écran, sans rien convertir."
+icon: "mic"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Transcrire une note vocale WhatsApp" duration="6 min" lang="fr" />
+
+**Ce que vous allez construire :** une commande qui transcrit chaque note vocale d’un dossier et écrit le texte à côté de chacune.
+
+**Ce qu’il vous faut :** `curl`, ou Python avec la [bibliothèque Python](/fr/sdks/python) (`pip install namu-ai`), et la variable `NAMU_API_KEY` définie.
+
+<Steps>
+  <Step title="Copier la note vocale sur votre ordinateur">
+    Dans WhatsApp, appuyez longuement sur la note vocale → **Partager** (Android) ou **Transférer → Partager** (iPhone) → envoyez-la à vous-même par e-mail ou enregistrez-la dans Fichiers. Vous obtenez un fichier comme `PTT-20261108-WA0003.opus`, qui est de l’Ogg Opus. Gardez-le tel quel : l’API le lit directement.
+  </Step>
+
+  <Step title="En transcrire une">
+    ```bash
+    curl https://api.namuai-lab.com/v1/transcribe \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      -F file=@PTT-20261108-WA0003.opus \
+      -F language=ha
+    ```
+    Envoyez `dje` pour le zarma ou `fr` pour le français.
+  </Step>
+
+  <Step title="Transcrire un dossier entier">
+    ```python transcribe_folder.py
+    import sys
+    from pathlib import Path
+
+    from namu import Namu, NamuError
+
+    client = Namu()
+    folder, language = Path(sys.argv[1]), (sys.argv[2] if len(sys.argv) > 2 else "ha")
+    AUDIO = {".opus", ".ogg", ".m4a", ".mp3", ".wav", ".aac", ".webm", ".flac"}
+
+    for note in sorted(p for p in folder.iterdir() if p.suffix.lower() in AUDIO):
+        text_file = note.with_suffix(".txt")
+        if text_file.exists():
+            continue
+        try:
+            result = client.transcribe(note, language=language)
+        except NamuError as e:
+            print(f"{note.name}: {e.type}")
+            continue
+        text_file.write_text(result["text"] + "\n", encoding="utf-8")
+        print(f"{note.name} ({result['audio_seconds']:.0f} s): {result['text'][:60]}")
+    ```
+
+    ```bash
+    python transcribe_folder.py ./voice-notes ha
+    ```
+  </Step>
+</Steps>
+
+## Bon à savoir
+
+- Le texte arrive en minuscules, sans ponctuation.
+- Les notes de plus de 5 minutes renvoient `audio_too_long` : [découpez-les d’abord](/fr/guides/audio-formats).
+- Demandez avant de transcrire la note vocale de quelqu’un : c’est sa voix, et ce sont ses mots.
+
+## Pour aller plus loin
+
+<CardGroup cols={2}>
+  <Card title="Construire un interprète" icon="circle-play" href="/fr/tutorials/hausa-french-interpreter">Traduire ce qui a été dit</Card>
+  <Card title="Transcription" icon="mic" href="/fr/capabilities/speech-to-text">Toutes les options</Card>
+</CardGroup>

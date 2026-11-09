@@ -412,8 +412,8 @@ components:
         model: { type: string, example: voice-agent }
         persona: { type: string, example: nadia }
         session_id: { type: [string, "null"] }
-        heard: { type: string, description: What the person said, as text. }
-        reply: { type: string, description: The answer, as text. }
+        heard: { type: string, description: "What the person said, as text." }
+        reply: { type: string, description: "The answer, as text." }
         audio: { type: string, description: "The answer spoken, base64 WAV." }
         sample_rate: { type: integer, example: 24000 }
         audio_seconds: { type: number, description: "Audio sent plus the reply." }
@@ -447,7 +447,7 @@ components:
           type: object
           properties:
             type: { type: string, description: "A stable code, such as `invalid_api_key`." }
-            message: { type: string, description: What happened, in plain words. }
+            message: { type: string, description: "What happened, in plain words." }
             request_id: { type: string }
 
   responses:

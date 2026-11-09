@@ -1,0 +1,60 @@
+---
+title: "Votre premier appel en cinq minutes"
+sidebarTitle: "Votre premier appel"
+description: "Créez une clé, envoyez une requête, et entendez votre application parler haoussa."
+icon: "rocket"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Votre premier appel en cinq minutes" duration="5 min" lang="fr" />
+
+**Il vous faut :** un ordinateur avec un terminal, et cinq minutes. Rien à installer : `curl` est déjà présent sur macOS, Linux et Windows 10 et versions ultérieures.
+
+<Steps>
+  <Step title="Inscrivez-vous et créez une clé">
+    Allez sur [namuai-lab.com/fr/account/keys](https://www.namuai-lab.com/fr/account/keys), créez un compte, puis cliquez sur **Créer une clé secrète**. Copiez la clé : elle n’est affichée qu’une fois.
+  </Step>
+  <Step title="Mettez la clé dans votre terminal">
+    ```bash
+    export NAMU_API_KEY="namu_sk_..."
+    ```
+    Dans Windows PowerShell : `$env:NAMU_API_KEY = "namu_sk_..."`
+  </Step>
+  <Step title="Demandez à Nadia de parler">
+    ```bash
+    curl https://api.namuai-lab.com/v1/speech \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"text": "Sannu da zuwa! Muna farin cikin jin muryarku.", "voice": "nadia", "format": "mp3"}' \
+      -o welcome.mp3
+    ```
+    La première requête après une période calme peut prendre jusqu’à une minute. La suivante est plus rapide.
+  </Step>
+  <Step title="Écoutez">
+    Ouvrez `welcome.mp3` : *« Bienvenue ! Nous sommes heureux d’entendre votre voix. »* Essayez ensuite le zarma :
+
+    ```bash
+    curl https://api.namuai-lab.com/v1/speech \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"text": "Fofo! Mate ni go?", "voice": "mouhamad", "format": "mp3"}' \
+      -o fofo.mp3
+    ```
+  </Step>
+</Steps>
+
+## Si quelque chose ne va pas
+
+| Vous voyez | Faites ceci |
+| --- | --- |
+| `missing_api_key` | L’`export` n’a pas atteint ce terminal. Relancez-le dans la même fenêtre. |
+| `invalid_api_key` | La clé n’a été copiée qu’en partie. Copiez-la à nouveau, ou créez-en une nouvelle. |
+| Le fichier ne se lit pas | Ouvrez-le dans un éditeur de texte : s’il commence par `{"error"`, le message dit pourquoi. |
+
+## Et ensuite
+
+<CardGroup cols={2}>
+  <Card title="Démarrage rapide" icon="book-open" href="/fr/quickstart">La même chose, en Python et en JavaScript</Card>
+  <Card title="Lire des messages à voix haute" icon="circle-play" href="/fr/tutorials/read-aloud-in-hausa">Tutoriel suivant</Card>
+</CardGroup>

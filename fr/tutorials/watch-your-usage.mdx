@@ -1,0 +1,52 @@
+---
+title: "Surveiller votre consommation"
+sidebarTitle: "Surveiller votre consommation"
+description: "Une vérification quotidienne qui vous prévient avant que le quota du mois soit épuisé."
+icon: "gauge"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Surveiller votre consommation" duration="4 min" lang="fr" />
+
+**Vous allez construire :** un petit script qui lit votre consommation, calcule si le quota tiendra jusqu’à la fin du mois au rythme actuel, et vous prévient si ce n’est pas le cas. Lancez-le chaque jour depuis cron, une tâche planifiée ou un workflow de CI.
+
+<Steps>
+  <Step title="La vérification">
+    ```python check_usage.py
+    import calendar
+    import sys
+    from datetime import datetime, timezone
+
+    from namu import Namu
+
+    usage = Namu().usage()
+    used, limit = usage["month_audio_seconds_used"], usage["month_audio_seconds_limit"]
+
+    now = datetime.now(timezone.utc)
+    days = calendar.monthrange(now.year, now.month)[1]
+    elapsed = (now.day - 1) + now.hour / 24 or 0.01
+    projected = used / elapsed * days
+
+    print(f"Used {used / 60:.1f} of {limit / 60:.0f} minutes; on pace for {projected / 60:.0f} this month.")
+    if used >= 0.8 * limit or projected > limit:
+        print("Warning: the allowance may run out before the 1st.")
+        sys.exit(1)   # une tâche qui échoue fait une alerte simple dans cron et en CI
+    ```
+  </Step>
+
+  <Step title="Lancez-le chaque matin">
+    ```bash crontab
+    0 7 * * * NAMU_API_KEY=namu_sk_... /usr/bin/python3 /srv/app/check_usage.py || /srv/app/notify.sh "Namu usage"
+    ```
+  </Step>
+</Steps>
+
+`/v1/usage` est gratuit : il ne compte ni dans le quota ni dans la limite de débit. Il peut avoir jusqu’à 30 secondes de retard.
+
+## Et ensuite
+
+<CardGroup cols={2}>
+  <Card title="Consommation et limites de débit" icon="gauge" href="/fr/guides/usage-and-rate-limits">Comment chaque requête est comptée</Card>
+  <Card title="Tarifs et limites" icon="receipt" href="/fr/pricing-and-limits">Le quota de la bêta</Card>
+</CardGroup>

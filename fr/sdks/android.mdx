@@ -1,0 +1,154 @@
+---
+title: "Android (Kotlin)"
+sidebarTitle: "Android"
+description: "Enregistrez une note vocale, faites-la transcrire et faites lire une réponse parlée, avec la clé en sécurité sur votre serveur."
+icon: "smartphone"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="La voix dans une application Android" duration="10 min" lang="fr" />
+
+La plupart des personnes qui utiliseront votre application ont un téléphone Android. Cette page construit les deux moitiés d’une fonction vocale : une petite route sur votre serveur, qui garde votre clé, et le code Kotlin qui enregistre, envoie et lit l’audio.
+
+```text
+Application Android  ──(votre connexion)──►  votre serveur  ──(NAMU_API_KEY)──►  api.namuai-lab.com
+```
+
+<Warning>
+  Ne mettez jamais votre clé Namu dans l’application. Un APK se décompresse en quelques minutes, et la clé permettrait à n’importe qui de consommer votre quota.
+</Warning>
+
+## 1. La route du serveur
+
+N’importe quel serveur convient. Voici deux routes en Python avec Flask et la [bibliothèque Python](/fr/sdks/python) (`pip install namu-ai`) :
+
+```python server.py
+from flask import Flask, request, Response
+from namu import Namu, NamuError
+
+app = Flask(__name__)
+namu = Namu()
+
+@app.post("/api/transcribe")
+def transcribe():
+    # 1. vérifiez ici votre propre utilisateur (session, jeton...)
+    audio = request.files["file"].read()
+    try:
+        result = namu.transcribe(audio, language=request.form.get("language", "ha"))
+    except NamuError as e:
+        return {"error": e.type}, e.status
+    return {"text": result["text"]}
+
+@app.post("/api/speak")
+def speak():
+    try:
+        audio = namu.speech(request.json["text"], voice=request.json.get("voice", "nadia"), format="mp3")
+    except NamuError as e:
+        return {"error": e.type}, e.status
+    return Response(audio, mimetype="audio/mpeg")
+```
+
+## 2. Enregistrer une note vocale
+
+`MediaRecorder` écrit de l’AAC dans un fichier M4A : c’est léger, et l’API le lit tel quel. Demandez d’abord l’autorisation d’utiliser le micro (`android.permission.RECORD_AUDIO`).
+
+```kotlin Recorder.kt
+import android.content.Context
+import android.media.MediaRecorder
+import java.io.File
+
+class Recorder(private val context: Context) {
+    private var recorder: MediaRecorder? = null
+    val file: File get() = File(context.cacheDir, "note.m4a")
+
+    fun start() {
+        recorder = MediaRecorder(context).apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioChannels(1)          // mono, deux fois moins d’octets, les mêmes mots
+            setAudioSamplingRate(16_000)
+            setAudioEncodingBitRate(32_000)
+            setOutputFile(file.absolutePath)
+            prepare()
+            start()
+        }
+    }
+
+    fun stop() {
+        recorder?.apply { stop(); release() }
+        recorder = null
+    }
+}
+```
+
+`MediaRecorder(context)` demande Android 12 (API 31) ; sur les versions plus anciennes, utilisez `MediaRecorder()`.
+
+## 3. Envoyer la note et lire le texte
+
+Avec OkHttp (`com.squareup.okhttp3:okhttp`). Exécutez ce code hors du fil principal, dans une coroutine :
+
+```kotlin VoiceApi.kt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.File
+import java.util.concurrent.TimeUnit
+
+class VoiceApi(private val baseUrl: String, private val token: String) {
+    // Des délais généreux. Les réseaux mobiles sont lents, et un modèle qui se réveille peut prendre une minute.
+    private val http = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(5, TimeUnit.MINUTES)
+        .writeTimeout(2, TimeUnit.MINUTES)
+        .build()
+
+    suspend fun transcribe(note: File, language: String = "ha"): String = withContext(Dispatchers.IO) {
+        val body = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("file", note.name, note.asRequestBody("audio/mp4".toMediaType()))
+            .addFormDataPart("language", language)
+            .build()
+        val request = Request.Builder().url("$baseUrl/api/transcribe")
+            .header("Authorization", "Bearer $token")   // le jeton de votre utilisateur, pas la clé Namu
+            .post(body).build()
+        http.newCall(request).execute().use { response ->
+            val json = JSONObject(response.body!!.string())
+            if (!response.isSuccessful) error(json.optString("error", "failed"))
+            json.getString("text")
+        }
+    }
+
+    suspend fun speak(text: String, into: File): File = withContext(Dispatchers.IO) {
+        val body = JSONObject(mapOf("text" to text, "voice" to "nadia")).toString()
+            .toRequestBody("application/json".toMediaType())
+        val request = Request.Builder().url("$baseUrl/api/speak")
+            .header("Authorization", "Bearer $token").post(body).build()
+        http.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) error("speak failed: ${response.code}")
+            into.outputStream().use { response.body!!.byteStream().copyTo(it) }
+        }
+        into
+    }
+}
+```
+
+## 4. Lire la réponse
+
+```kotlin
+val reply = api.speak("Na gode! Mun karɓi saƙonku.", File(cacheDir, "reply.mp3"))
+MediaPlayer().apply {
+    setDataSource(reply.absolutePath)
+    setOnCompletionListener { release() }
+    prepare()
+    start()
+}
+```
+
+Gardez `note.m4a` jusqu’à ce que la transcription réussisse : si le réseau coupe, réessayez à partir du fichier au lieu de demander à la personne de parler à nouveau. D’autres bonnes habitudes sont décrites dans [Construire pour les réseaux faibles](/fr/guides/weak-networks).

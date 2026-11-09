@@ -1,0 +1,56 @@
+---
+title: "Clés d’API"
+description: "Créez des clés, donnez à chacune seulement ce dont elle a besoin, et gardez-les hors des téléphones et des pages web."
+icon: "key-round"
+---
+
+Chaque requête qui effectue un travail porte une clé secrète dans l’en-tête `Authorization` :
+
+```http
+Authorization: Bearer namu_sk_...
+```
+
+Une clé, c’est `namu_sk_` suivi de 43 lettres et chiffres. `GET /v1/models`, `/v1/voices` et `/v1/health` n’ont pas besoin de clé.
+
+## Créer une clé
+
+1. Ouvrez [Clés d’API](https://www.namuai-lab.com/fr/account/keys) dans la console (connectez-vous ou créez d’abord un compte).
+2. Cliquez sur **Créer une clé secrète** et nommez-la d’après l’endroit où elle vivra : `clinic-reminders-server`, `staging`.
+3. Choisissez ses **permissions** (ci-dessous), puis créez-la.
+4. Copiez la clé tout de suite. Elle n’est affichée **qu’une fois** : nous en gardons une empreinte, pas la clé, et nous ne pouvons donc pas vous la montrer à nouveau.
+
+Un compte peut avoir jusqu’à 10 clés actives.
+
+## Permissions
+
+Une permission (en anglais *scope*) donne le droit d’appeler un point d’accès. Donnez à une clé seulement les permissions que son code utilise : si elle fuit, c’est tout ce qu’elle pourra faire.
+
+| Permission | Point d’accès | Active par défaut |
+| --- | --- | :---: |
+| `transcribe` | `POST /v1/transcribe` | ✓ |
+| `speech` | `POST /v1/speech` | ✓ |
+| `translate` | `POST /v1/translate` | ✓ |
+| `converse` | `POST /v1/converse` | À cocher |
+
+Un appel en dehors des permissions d’une clé renvoie `403 insufficient_scope`.
+
+## Garder les clés secrètes
+
+<Warning>
+  Ne mettez jamais une clé dans une application Android ou iOS, dans du JavaScript qui s’exécute dans un navigateur, ni dans un dépôt public. Une application peut être décompilée et une page web peut être lue : quiconque trouve la clé peut dépenser votre quota.
+</Warning>
+
+Appelez l’API Namu **depuis votre serveur**, et laissez votre application parler à votre serveur :
+
+```text
+application mobile  ──►  votre serveur (détient NAMU_API_KEY)  ──►  api.namuai-lab.com
+```
+
+Votre serveur peut aussi vérifier qui est l’utilisateur, mettre en cache l’audio que vous envoyez à beaucoup de personnes et appliquer vos propres limites. Les pages [Android](/fr/sdks/android) et [iOS](/fr/sdks/ios) montrent ce schéma.
+
+- Lisez la clé depuis une variable d’environnement ou depuis le gestionnaire de secrets de votre hébergeur, jamais depuis un fichier du dépôt.
+- Utilisez une clé différente pour chaque application et chaque environnement, pour pouvoir en révoquer une sans arrêter les autres.
+
+## Révoquer une clé
+
+Dans la console, ouvrez **Clés d’API** et révoquez la clé. Les requêtes faites avec elle cessent de fonctionner en 30 secondes environ et renvoient `401 key_revoked`. Révoquez une clé immédiatement si vous pensez qu’elle a été exposée, puis créez-en une nouvelle.

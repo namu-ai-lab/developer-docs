@@ -1,0 +1,58 @@
+---
+title: "Construire pour les réseaux faibles"
+description: "La plupart des personnes qui entendront votre application sont sur téléphone, avec des données mobiles lentes, chères et qui coupent. Concevez pour cela dès la première ligne."
+icon: "wifi-low"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Faire fonctionner une application vocale en 2G et en 3G" duration="8 min" lang="fr" />
+
+Une fois réveillée, l’API Namu répond en quelques secondes. La partie lente est généralement le dernier kilomètre : la connexion du téléphone. Ces habitudes font la différence entre une application que les gens utilisent et une application qu’ils abandonnent.
+
+## Envoyer et recevoir de l’audio léger
+
+- **Demandez `opus`** à `/v1/speech` : environ 40 Ko pour dix secondes, contre 480 Ko en WAV. Utilisez `mp3` là où Opus ne se lit pas.
+- **Envoyez les notes vocales telles quelles.** Un OGG de WhatsApp est déjà léger ; le convertir d’abord en WAV le rend environ dix fois plus lourd.
+- **Enregistrez en mono**, avec les réglages habituels du téléphone pour la parole. La stéréo et les fréquences d’échantillonnage élevées ajoutent des octets, pas de la précision.
+
+## Faire moins d’allers-retours
+
+- **La parole en entrée, la parole en sortie, en un seul appel.** `/v1/translate` avec `include_audio` renvoie la traduction et son audio ensemble.
+- **Générez une seule fois l’audio partagé.** Une annonce quotidienne diffusée à des milliers de personnes doit être un seul appel à `/v1/speech`, stocké sur votre serveur ou sur un CDN, et non un appel par auditeur.
+- **Lisez `/v1/voices` une fois** au démarrage de votre application, pas avant chaque requête.
+
+## Gérer les coupures de ligne
+
+- **Gardez l’enregistrement jusqu’à l’arrivée de la réponse.** Si l’envoi échoue, réessayez à partir du fichier enregistré au lieu de demander à la personne de parler à nouveau.
+- **Réessayez après une pause.** Après une erreur réseau, un `502` ou un `504`, attendez une seconde, puis deux, puis quatre, et arrêtez après quelques essais. Une requête qui échoue ne compte pas dans votre quota.
+- **Utilisez un délai d’attente généreux.** La première requête après une période calme peut prendre une minute ou plus, le temps que le modèle se réveille. Réglez les délais en minutes, pas en secondes, et montrez à la personne que quelque chose se passe.
+
+```python Python
+import time
+import requests
+
+def post_with_retries(url, tries=4, **kwargs):
+    for attempt in range(tries):
+        try:
+            response = requests.post(url, timeout=300, **kwargs)
+            if response.status_code not in (429, 502, 503, 504):
+                return response
+            wait = int(response.headers.get("Retry-After", 2 ** attempt))
+        except requests.ConnectionError:
+            wait = 2 ** attempt
+        time.sleep(wait)
+    return response
+```
+
+<Note>
+  Ne réessayez pas `429 quota_exceeded` : le quota du mois est épuisé, et seul le mois suivant (ou un quota plus élevé) y change quelque chose.
+</Note>
+
+## Montrer une progression fiable
+
+La parole prend un moment à produire et à télécharger. Dites-le : un son bref ou un état « J’écoute… » à la fin de l’enregistrement, et lancez la réponse dès que le fichier arrive. Sur les lignes lentes, une version texte de la réponse affichée d’abord (le champ `text`, `reply` ou `source_text`) permet aux gens de commencer à lire pendant que l’audio se charge.
+
+## Travailler hors ligne quand c’est possible
+
+Mettez les enregistrements en file d’attente quand il n’y a pas de connexion, et envoyez-les quand elle revient ; stockez l’audio que vous avez généré pour qu’une deuxième écoute ne coûte rien. Au Sahel, les notes vocales partent souvent quand le réseau le permet, pas au moment où elles sont enregistrées, et votre application peut faire de même.

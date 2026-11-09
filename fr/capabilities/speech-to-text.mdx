@@ -1,0 +1,144 @@
+---
+title: "Transcription"
+description: "Transformez des enregistrements et des notes vocales en texte, en haoussa, en zarma ou en français."
+icon: "mic"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="La transcription : d’une note vocale au texte" duration="5 min" lang="fr" />
+
+## Vue d’ensemble
+
+`POST /v1/transcribe` reçoit un enregistrement et renvoie ce qui a été dit, sous forme de texte. Au Sahel, on envoie bien plus de notes vocales qu’on ne tape de messages : la transcription permet à votre application de les lire, de les rechercher, de les classer ou d’y répondre.
+
+- **Modèle :** `speech-recognition` (bêta)
+- **Langues :** haoussa `ha` (par défaut), zarma `dje`, français `fr`
+- **Entrée :** WAV, MP3, M4A/AAC, OGG/Opus, WebM ou FLAC ; jusqu’à 25 Mo et 5 minutes
+- **Ce qui est compté :** la durée de l’audio que vous envoyez
+
+## Démarrage rapide
+
+Envoyez le fichier dans un champ multipart nommé `file`, avec la langue à côté :
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/transcribe \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@voice-note.ogg \
+    -F language=ha
+  ```
+
+  ```python Python
+  import os
+  import requests
+
+  with open("voice-note.ogg", "rb") as audio:
+      response = requests.post(
+          "https://api.namuai-lab.com/v1/transcribe",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          files={"file": audio},
+          data={"language": "ha"},
+          timeout=300,
+      )
+  response.raise_for_status()
+  print(response.json()["text"])
+  ```
+
+  ```javascript JavaScript
+  import { readFile } from "node:fs/promises";
+
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("voice-note.ogg")]), "voice-note.ogg");
+  form.append("language", "ha");
+
+  const response = await fetch("https://api.namuai-lab.com/v1/transcribe", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: form,
+  });
+  const { text } = await response.json();
+  ```
+</CodeGroup>
+
+```json Réponse
+{
+  "model": "speech-recognition",
+  "text": "sannu da zuwa",
+  "language": "ha",
+  "audio_seconds": 2.0
+}
+```
+
+### Envoyer l’audio comme corps de la requête
+
+Si votre enregistrement est déjà en mémoire, vous pouvez envoyer ses octets comme corps entier de la requête et mettre `language` dans l’adresse. C’est pratique depuis un téléphone, où construire un formulaire multipart demande un travail de plus :
+
+```bash
+curl "https://api.namuai-lab.com/v1/transcribe?language=dje" \
+  -H "Authorization: Bearer $NAMU_API_KEY" \
+  --data-binary @message.m4a
+```
+
+## Requête
+
+<ParamField body="file" type="file" required>
+  L’enregistrement. L’API reconnaît le conteneur à partir du fichier lui-même : le nom du fichier et le type de contenu n’ont pas d’importance.
+</ParamField>
+
+<ParamField body="language" type="string" default="ha">
+  La langue parlée : `ha`, `dje` ou `fr`. Le modèle ne la détecte pas : envoyez la langue que vous attendez.
+</ParamField>
+
+## Audio pris en charge
+
+| Format | Source habituelle |
+| --- | --- |
+| OGG / Opus | Notes vocales WhatsApp et Telegram, dictaphones Android |
+| M4A / AAC / MP4 / 3GP | Mémos vocaux de l’iPhone, beaucoup de téléphones Android |
+| MP3 | Extraits de radio, téléchargements |
+| WAV | Enregistrements de studio et d’ordinateur |
+| WebM | Enregistrements faits dans un navigateur web (`MediaRecorder`) |
+| FLAC | Archives |
+
+Un fichier que l’API ne sait pas lire renvoie `415 unsupported_audio`. Plus de détails dans le guide [formats audio](/fr/guides/audio-formats).
+
+## Lire le résultat
+
+- `text` est en minuscules, sans ponctuation. Ajoutez vous-même les majuscules et les points si vous l’affichez.
+- `audio_seconds` est la durée de ce que vous avez envoyé, c’est-à-dire ce qui a été compté.
+- Un enregistrement vide renvoie `400 empty_audio`.
+
+## Bonnes pratiques
+
+<AccordionGroup>
+  <Accordion title="Enregistrez près de la personne qui parle" icon="mic">
+    La plupart des erreurs viennent de la distance et du bruit, pas de la langue. Un téléphone tenu près de la bouche, à l’abri du vent, donne un bien meilleur texte qu’un téléphone posé sur une table à l’autre bout de la pièce.
+  </Accordion>
+  <Accordion title="Envoyez la langue que les gens parlent vraiment" icon="languages">
+    Si un utilisateur a choisi le zarma dans votre application, envoyez `dje`. Pour une parole qui mêle haoussa et français, envoyez la langue majoritaire.
+  </Accordion>
+  <Accordion title="Ne convertissez pas avant d’envoyer" icon="file-music">
+    Envoyez la note vocale telle quelle. Convertir un OGG en WAV rend l’envoi environ dix fois plus lourd et n’améliore pas le texte.
+  </Accordion>
+  <Accordion title="Découpez les longs enregistrements" icon="scissors">
+    Jusqu’à 5 minutes par requête. Pour une réunion ou une émission plus longue, coupez-la aux silences en morceaux de moins de 5 minutes et envoyez-les dans l’ordre. Voir la partie sur les longs enregistrements dans le guide [formats audio](/fr/guides/audio-formats).
+  </Accordion>
+  <Accordion title="Vérifiez ce qui compte" icon="shield-check">
+    Les transcriptions peuvent être fausses, surtout pour les noms, les nombres et l’audio bruité. Quand le texte sert à prendre une décision (une dose, un montant, une adresse), montrez-le à la personne ou faites-le vérifier par quelqu’un.
+  </Accordion>
+</AccordionGroup>
+
+## Limites
+
+- 25 Mo et 300 secondes par fichier (`413 payload_too_large`, `413 audio_too_long`).
+- Une langue par requête ; pas de détection automatique de la langue.
+- Pas encore d’horodatage ni d’identification des locuteurs.
+
+## Voir aussi
+
+<CardGroup cols={3}>
+  <Card title="Transcrire une note vocale" icon="circle-play" href="/fr/tutorials/transcribe-a-voice-note">Tutoriel</Card>
+  <Card title="Traduction" icon="languages" href="/fr/capabilities/translation">La parole directement en français ou en haoussa</Card>
+  <Card title="Référence de l’API" icon="square-terminal" href="/fr/api-reference/transcription/create-transcription">POST /v1/transcribe</Card>
+</CardGroup>
