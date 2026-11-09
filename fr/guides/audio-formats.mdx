@@ -1,0 +1,71 @@
+---
+title: "Formats audio"
+description: "Ce que l’API accepte, ce qu’elle renvoie, et comment garder des fichiers légers."
+icon: "file-music"
+---
+
+## L’audio que vous envoyez
+
+`/v1/transcribe`, `/v1/translate` et `/v1/converse` reconnaissent le conteneur à partir des premiers octets du fichier : le nom du fichier et son type de contenu n’ont donc pas d’importance.
+
+| Conteneur | Codecs | D’où il vient |
+| --- | --- | --- |
+| OGG | Opus | Notes vocales WhatsApp et Telegram, Android |
+| M4A, MP4, 3GP, AAC | AAC | Mémos vocaux de l’iPhone, beaucoup d’enregistreurs Android |
+| MP3 | MP3 | Extraits de radio, téléchargements |
+| WAV | PCM | Ordinateurs, enregistreurs de studio |
+| WebM | Opus | Navigateurs (`MediaRecorder`) |
+| FLAC | FLAC | Archives |
+
+Jusqu’à **25 Mo** et **300 secondes** par requête. Mono ou stéréo, toute fréquence d’échantillonnage.
+
+### Deux façons de l’envoyer
+
+<Tabs>
+  <Tab title="Formulaire multipart">
+    La méthode habituelle. Le fichier va dans un champ nommé `file`, les options à côté.
+
+    ```bash
+    curl https://api.namuai-lab.com/v1/transcribe \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      -F file=@note.ogg -F language=ha
+    ```
+  </Tab>
+  <Tab title="Corps brut">
+    Les octets forment tout le corps ; les options vont dans les paramètres de l’URL. Pratique quand l’audio est déjà en mémoire.
+
+    ```bash
+    curl "https://api.namuai-lab.com/v1/transcribe?language=ha" \
+      -H "Authorization: Bearer $NAMU_API_KEY" \
+      --data-binary @note.ogg
+    ```
+  </Tab>
+</Tabs>
+
+## L’audio que vous recevez
+
+`/v1/speech` renvoie ce que vous demandez avec `format` :
+
+| `format` | Type de contenu | Détails | Taille pour 10 secondes |
+| --- | --- | --- | --- |
+| `wav` (par défaut) | `audio/wav` | 24 kHz, PCM 16 bits, mono | environ 480 Ko |
+| `mp3` | `audio/mpeg` | 64 kbit/s, mono | environ 80 Ko |
+| `opus` | `audio/ogg` | Ogg Opus, 48 kHz, 32 kbit/s, mono | environ 40 Ko |
+| `json` | `application/json` | WAV en base64 dans `audio` | environ 640 Ko |
+
+`/v1/translate` (avec `include_audio`) et `/v1/converse` renvoient la réponse parlée en WAV base64 dans le JSON.
+
+<Tip>
+  Pour les personnes qui utilisent des données mobiles, demandez `opus` : il fait un douzième de la taille du WAV et se lit dans Chrome, Firefox, Android et WhatsApp. Pour Safari sur les anciens iPhone, utilisez `mp3`.
+</Tip>
+
+## Enregistrements longs
+
+Une requête accepte jusqu’à 5 minutes d’audio. Pour des enregistrements plus longs, découpez-les en morceaux aux silences et envoyez les morceaux dans l’ordre :
+
+```bash
+# Découper en morceaux de 4 minutes avec ffmpeg, sans réencoder
+ffmpeg -i meeting.m4a -f segment -segment_time 240 -c copy piece-%03d.m4a
+```
+
+Transcrivez ensuite `piece-000.m4a`, `piece-001.m4a`, … et assemblez les textes. Une coupure au milieu d’un mot peut faire perdre ce mot ; couper à une pause (par exemple avec le filtre `silencedetect` de `ffmpeg`) l’évite.

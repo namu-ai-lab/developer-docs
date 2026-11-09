@@ -1,0 +1,143 @@
+---
+title: "API Namu"
+sidebarTitle: "Accueil"
+description: "Reconnaissance vocale, synthèse vocale, traduction et un agent vocal pour le haoussa, le zarma et le français, avec une seule clé."
+mode: "wide"
+---
+
+<div className="namu-home-hero not-prose">
+  <div className="namu-home-hero-text">
+    <h2>Démarrage rapide pour les développeurs</h2>
+    <p>Faites votre première requête en quelques minutes : envoyez une phrase en haoussa, en zarma ou en français et recevez-la en parole, ou envoyez une note vocale et recevez son texte.</p>
+    <div className="namu-home-actions">
+      <a className="namu-pill namu-pill--ink" href="/fr/quickstart">Démarrer</a>
+      <a className="namu-pill" href="https://www.namuai-lab.com/fr/account/keys">Créer une clé d’API</a>
+    </div>
+  </div>
+  <div className="namu-home-hero-code">
+
+<CodeGroup dropdown>
+
+```python Python
+from namu import Namu
+
+client = Namu()  # lit NAMU_API_KEY
+
+audio = client.speech("Sannu da zuwa!", voice="nadia")
+open("welcome.wav", "wb").write(audio)
+```
+
+```javascript JavaScript
+import { writeFile } from "node:fs/promises";
+import { Namu } from "namu-ai";
+
+const namu = new Namu(); // lit NAMU_API_KEY
+
+const audio = await namu.speech("Sannu da zuwa!", { voice: "nadia" });
+await writeFile("welcome.wav", Buffer.from(audio));
+```
+
+```bash cURL
+curl https://api.namuai-lab.com/v1/speech \
+  -H "Authorization: Bearer $NAMU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Sannu da zuwa!", "voice": "nadia"}' \
+  -o welcome.wav
+```
+
+</CodeGroup>
+
+  </div>
+</div>
+
+<div className="namu-home-banner not-prose">
+  <div>
+    <p className="namu-home-banner-title">Développez avec l’API Namu dans votre agent de code</p>
+    <p>Donnez l’API en texte brut à Claude Code, Codex ou Cursor : chaque page de cette documentation a une copie en Markdown, et llms.txt contient toute l’API dans un seul fichier.</p>
+  </div>
+  <a className="namu-pill" href="https://www.namuai-lab.com/llms.txt">Ouvrir llms.txt</a>
+</div>
+
+<h2 className="namu-home-h">Parcours</h2>
+
+<div className="namu-home-paths not-prose">
+  <a className="namu-home-path" href="/fr/quickstart">
+    <span className="namu-home-path-title">API de parole</span>
+    <span className="namu-home-path-text">Transformez du texte en parole, de la parole en texte, et du haoussa en français ou l’inverse, avec une seule clé et du simple HTTPS.</span>
+    <span className="namu-home-path-link">Commencer par le démarrage rapide</span>
+  </a>
+  <a className="namu-home-path" href="/fr/sdks/overview">
+    <span className="namu-home-path-title">SDK pour Python et JavaScript</span>
+    <span className="namu-home-path-text"><code>pip install namu-ai</code> ou <code>npm install namu-ai</code> : réponses typées, nouvelles tentatives et une classe d’erreur par statut.</span>
+    <span className="namu-home-path-link">Commencer par les SDK</span>
+  </a>
+</div>
+
+<div className="namu-home-row">
+  <h2 className="namu-home-h">Modèles</h2>
+  <a className="namu-home-more" href="/fr/models">Tout voir</a>
+</div>
+<p className="namu-home-sub">Un modèle par tâche, chacun sur son propre point d’accès, avec les mêmes limites et la même forme pour toutes les erreurs.</p>
+
+<div className="namu-home-models not-prose">
+  <a className="namu-home-model" href="/fr/capabilities/text-to-speech">
+    <span className="namu-home-model-id">speech-synthesis</span>
+    <span className="namu-home-model-name">Synthèse vocale</span>
+    <span className="namu-home-model-text">Parle le haoussa, le zarma et le français, avec trois voix.</span>
+    <span className="namu-home-badge">Bêta</span>
+  </a>
+  <a className="namu-home-model" href="/fr/capabilities/speech-to-text">
+    <span className="namu-home-model-id">speech-recognition</span>
+    <span className="namu-home-model-name">Transcription</span>
+    <span className="namu-home-model-text">Transcrit la parole en haoussa, en zarma et en français, notes vocales comprises.</span>
+    <span className="namu-home-badge">Bêta</span>
+  </a>
+  <a className="namu-home-model" href="/fr/capabilities/translation">
+    <span className="namu-home-model-id">translation</span>
+    <span className="namu-home-model-name">Traduction</span>
+    <span className="namu-home-model-text">Du haoussa vers le français et du français vers le haoussa, à partir d’un texte ou de la parole.</span>
+    <span className="namu-home-badge">Bêta</span>
+  </a>
+  <a className="namu-home-model" href="/fr/capabilities/voice-agent">
+    <span className="namu-home-model-id">voice-agent</span>
+    <span className="namu-home-model-name">Agent vocal</span>
+    <span className="namu-home-model-text">Un tour de parole en haoussa : il écoute, répond et dit sa réponse à voix haute.</span>
+    <span className="namu-home-badge namu-home-badge--quiet">Recherche</span>
+  </a>
+</div>
+
+<h2 className="namu-home-h">Commencer à développer</h2>
+
+<div className="namu-home-grid not-prose">
+  <a className="namu-home-item" href="/fr/tutorials/read-aloud-in-hausa">
+    <span className="namu-home-item-title">Lire des messages à voix haute</span>
+    <span className="namu-home-item-text">Transformez des rappels et des leçons en parole, en haoussa, en zarma ou en français</span>
+  </a>
+  <a className="namu-home-item" href="/fr/tutorials/transcribe-a-voice-note">
+    <span className="namu-home-item-title">Transcrire des notes vocales</span>
+    <span className="namu-home-item-text">Obtenez le texte d’une note vocale WhatsApp ou d’un enregistrement téléphonique</span>
+  </a>
+  <a className="namu-home-item" href="/fr/tutorials/hausa-french-interpreter">
+    <span className="namu-home-item-title">Traduire le haoussa et le français</span>
+    <span className="namu-home-item-text">Créez un interprète qui entend une langue et répond dans l’autre</span>
+  </a>
+  <a className="namu-home-item" href="/fr/tutorials/talk-to-the-voice-agent">
+    <span className="namu-home-item-title">Parler avec l’agent vocal</span>
+    <span className="namu-home-item-text">Envoyez une question orale en haoussa et écoutez la réponse parlée</span>
+  </a>
+  <a className="namu-home-item" href="/fr/guides/weak-networks">
+    <span className="namu-home-item-title">Construire pour les réseaux faibles</span>
+    <span className="namu-home-item-text">Audio léger, attentes courtes et nouvelles tentatives pour les téléphones dont les données coûtent cher</span>
+  </a>
+  <a className="namu-home-item" href="/fr/guides/production-checklist">
+    <span className="namu-home-item-title">Passer en production</span>
+    <span className="namu-home-item-text">Clés, erreurs, limites et consommation, avant que de vraies personnes utilisent votre application</span>
+  </a>
+</div>
+
+<div className="namu-home-help not-prose">
+  <a href="/fr/resources/support"><span className="namu-home-item-title">Aide et assistance</span><span className="namu-home-item-text">Questions sur votre compte, vos clés et votre consommation</span></a>
+  <a href="/fr/resources/changelog"><span className="namu-home-item-title">Historique des versions</span><span className="namu-home-item-text">Ce qui a changé dans l’API et les SDK</span></a>
+  <a href="/fr/api-reference/introduction"><span className="namu-home-item-title">Référence de l’API</span><span className="namu-home-item-text">Chaque point d’accès, chaque paramètre et chaque réponse</span></a>
+  <a href="/fr/resources/responsible-use"><span className="namu-home-item-title">Usage responsable</span><span className="namu-home-item-text">À quoi les voix peuvent servir, et à quoi elles ne doivent pas servir</span></a>
+</div>

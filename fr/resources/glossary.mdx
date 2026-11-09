@@ -1,0 +1,57 @@
+---
+title: "Glossaire"
+description: "Les mots de cette documentation, réunis au même endroit."
+icon: "book-a"
+---
+
+<ResponseField name="Bêta">
+  Prêt pour construire avec de vrais utilisateurs, pendant que la qualité continue de s’améliorer. Les changements qui pourraient casser votre intégration sont annoncés dans l’historique des versions.
+</ResponseField>
+
+<ResponseField name="Clé d’API">
+  Un secret qui commence par `namu_sk_` et identifie votre compte. Elle reste sur votre serveur et s’envoie en `Authorization: Bearer`.
+</ResponseField>
+
+<ResponseField name="Code de langue">
+  `ha` haoussa, `dje` zarma, `fr` français : les codes ISO 639 qu’utilise l’API.
+</ResponseField>
+
+<ResponseField name="Identifiant de requête">
+  Un identifiant unique pour chaque réponse, dans `X-Request-Id` et dans le corps des erreurs. Envoyez-le-nous quand quelque chose ne va pas.
+</ResponseField>
+
+<ResponseField name="Limite de débit">
+  Requêtes par minute et par clé : 60 par défaut. La dépasser renvoie `429 rate_limited` avec `Retry-After`.
+</ResponseField>
+
+<ResponseField name="Opus">
+  Un format audio compact pour la parole. L’API le renvoie avec `"format": "opus"` (Ogg Opus) et le lit dans les notes vocales.
+</ResponseField>
+
+<ResponseField name="Permission (scope)">
+  Ce qu’une clé peut appeler : `transcribe`, `speech`, `translate`, `converse`. Les nouvelles clés reçoivent toutes les permissions sauf `converse`.
+</ResponseField>
+
+<ResponseField name="Personnage (persona)">
+  Qui répond dans l’agent vocal. `nadia` est le seul.
+</ResponseField>
+
+<ResponseField name="Quota">
+  Les secondes d’audio qu’un compte peut utiliser chaque mois : 1 800 (30 minutes) pendant la bêta. Remis à zéro le 1er de chaque mois, en UTC.
+</ResponseField>
+
+<ResponseField name="Quota épuisé">
+  `429 quota_exceeded` : le quota du mois est utilisé. À distinguer de `rate_limited`, qui passe au bout de quelques secondes.
+</ResponseField>
+
+<ResponseField name="Recherche">
+  Un aperçu d’un travail en cours, comme l’agent vocal. Il peut changer sans préavis.
+</ResponseField>
+
+<ResponseField name="Secondes d’audio">
+  L’unité dans laquelle tout est compté : la durée de l’audio envoyé ou renvoyé. La traduction de texte compte les caractères ÷ 15.
+</ResponseField>
+
+<ResponseField name="Voix">
+  Qui parle dans `/v1/speech` : `nadia` (ou `warm`), `mouhamad`, `fr`. Chacune est utilisée avec le consentement de la personne dont c’est la voix.
+</ResponseField>

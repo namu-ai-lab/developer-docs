@@ -1,0 +1,55 @@
+---
+title: "Aide et assistance"
+description: "Où poser vos questions, quoi indiquer, et comment vérifier que l’API fonctionne."
+icon: "life-buoy"
+---
+
+## Écrivez-nous
+
+<Card title="contact@namuai.org" icon="mail" href="mailto:contact@namuai.org">
+  Questions, bogues, une erreur dans un exemple en haoussa ou en zarma, une limite plus haute pour un projet pilote. Nous répondons en anglais ou en français.
+</Card>
+
+Pour nous aider à répondre vite, indiquez :
+
+- le **`request_id`** de l’erreur (ou l’en-tête `X-Request-Id`), et l’heure avec votre fuseau horaire ;
+- le point d’accès et les options que vous avez envoyés (pas votre clé, ni l’audio d’une personne qui n’a pas accepté de le partager) ;
+- ce que vous attendiez, et ce qui s’est passé.
+
+## L’API fonctionne-t-elle ?
+
+```bash
+curl https://api.namuai-lab.com/v1/health
+```
+
+```json
+{ "service": "namu-api", "status": "ok", "models": ["speech-recognition", "speech-synthesis", "translation", "voice-agent"] }
+```
+
+`/v1/health` ne demande pas de clé. S’il répond mais que vos requêtes échouent, le `type` de l’erreur indique généralement pourquoi : voir [Erreurs](/fr/guides/errors).
+
+## Questions fréquentes
+
+<AccordionGroup>
+  <Accordion title="La première requête est lente. Y a-t-il un problème ?">
+    Non. Quand l’API n’a pas servi depuis un moment, la première requête réveille le modèle, ce qui peut prendre une minute ou plus. Les requêtes suivantes sont bien plus rapides. Gardez des délais d’attente généreux.
+  </Accordion>
+  <Accordion title="Puis-je utiliser l’API directement depuis mon application mobile ?">
+    Pas avec votre clé dans l’application. Appelez l’API depuis votre serveur, et laissez l’application appeler votre serveur. Voir [Clés d’API](/fr/guides/api-keys#garder-les-clés-secrètes).
+  </Accordion>
+  <Accordion title="Puis-je utiliser ma propre voix, ou en cloner une ?">
+    Non. L’API parle avec les voix listées dans [Voix et langues](/fr/voices-and-languages), chacune utilisée avec le consentement de la personne dont c’est la voix.
+  </Accordion>
+  <Accordion title="Prenez-vous en charge le peul, le tamasheq ou le kanouri ?">
+    Pas encore dans l’API. Ces langues font partie des recherches du Lab ; nous ajoutons une langue quand nous pouvons mesurer qu’elle fonctionne.
+  </Accordion>
+  <Accordion title="Puis-je avoir plus de 30 minutes par mois ?">
+    Pendant la bêta, écrivez-nous en décrivant ce que vous construisez et le volume que vous prévoyez.
+  </Accordion>
+  <Accordion title="Que deviennent mon audio et mes textes ?">
+    Namu conserve des relevés d’usage (quel modèle, quand, combien d’audio, combien de temps la requête a pris, le statut), pas votre audio ni vos textes. La transcription et la synthèse vocale tournent sur les propres modèles de Namu. Les traductions et les réponses de l’agent vocal sont rédigées par Google Gemini via OpenRouter, qui reçoit le texte à traiter (et, pour du français parlé dans une traduction, l’enregistrement). Voir la [politique de confidentialité](https://www.namuai-lab.com/fr/privacy).
+  </Accordion>
+  <Accordion title="Comment supprimer mon compte ?">
+    Depuis la page Paramètres de la console, écrivez-nous avec l’adresse e-mail de votre compte : nous supprimons le compte, ses clés et ses relevés d’usage.
+  </Accordion>
+</AccordionGroup>

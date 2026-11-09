@@ -1,0 +1,98 @@
+---
+title: "Rappels vocaux pour un centre de santé"
+sidebarTitle: "Rappels vocaux pour une clinique"
+description: "Des rappels de vaccination parlés, construits par morceaux, pour ne jamais payer deux fois la même phrase."
+icon: "heart-pulse"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Rappels vocaux pour un centre de santé" duration="10 min" lang="fr" />
+
+**Ce que vous allez construire :** un service de rappels pour un centre de santé. Chaque soir, il prépare, pour chaque famille qui a un rendez-vous le lendemain, un court rappel parlé dans la langue de la famille : le haoussa ici, et le zarma dès qu’un locuteur natif en aura écrit les phrases. Les phrases fixes sont générées une fois et réutilisées ; seul ce qui change (le prénom de l’enfant) est dit à chaque fois.
+
+**Ce qu’il vous faut :** Python 3.9 ou plus récent, la [bibliothèque Python](/fr/sdks/python) (`pip install namu-ai`), et la variable `NAMU_API_KEY` définie. L’assemblage des fichiers audio utilise `ffmpeg`.
+
+## Le principe
+
+Un rappel se compose de trois parties :
+
+| Partie | Haoussa | Générée |
+| --- | --- | --- |
+| La salutation | *Ina kwana!* | une fois pour toutes |
+| Le prénom | *Aisha* | une fois par prénom |
+| Le message | *Kar ki manta, gobe da safe ki kawo jaririnki asibiti don allurar rigakafi.* | une fois pour toutes |
+
+Cent rappels coûtent une salutation, un message et cent prénoms courts, pas cent phrases complètes.
+
+<Steps>
+  <Step title="Dire chaque partie une seule fois">
+    ```python reminders.py
+    import hashlib
+    import subprocess
+    from pathlib import Path
+
+    from namu import Namu
+
+    client = Namu()
+    CACHE = Path("cache"); CACHE.mkdir(exist_ok=True)
+    OUT = Path("reminders"); OUT.mkdir(exist_ok=True)
+
+    VOICES = {"ha": "nadia", "dje": "mouhamad"}
+    PARTS = {
+        "ha": {
+            "greeting": "Ina kwana!",
+            "message": "Kar ki manta, gobe da safe ki kawo jaririnki asibiti don allurar rigakafi.",
+        },
+        # Écrivez les phrases en zarma avec un locuteur natif et ajoutez-les ici avant d’envoyer des rappels en zarma.
+        "dje": {},
+    }
+
+    def spoken(text: str, language: str) -> Path:
+        """L’audio de `text`, généré une fois et gardé dans le cache."""
+        voice = VOICES[language]
+        path = CACHE / (hashlib.sha256(f"{voice}:{language}:{text}".encode()).hexdigest()[:16] + ".wav")
+        if not path.exists():
+            path.write_bytes(client.speech(text, voice=voice, language=language, format="wav"))
+        return path
+
+    def reminder(name: str, language: str) -> Path:
+        parts = PARTS[language]
+        files = [spoken(parts["greeting"], language), spoken(name, language), spoken(parts["message"], language)]
+        out = OUT / f"{hashlib.sha256((name + language).encode()).hexdigest()[:12]}.ogg"
+        listing = CACHE / "list.txt"
+        listing.write_text("".join(f"file '{f.resolve()}'\n" for f in files))
+        # Assembler les parties et encoder une seule fois en Opus léger, prêt pour WhatsApp ou une ligne téléphonique.
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listing),
+                        "-c:a", "libopus", "-b:a", "24k", str(out)], check=True)
+        return out
+
+    if __name__ == "__main__":
+        for name in ["Aisha", "Hadiza", "Maryam"]:
+            print(reminder(name, "ha"))
+    ```
+
+    Les parties sont gardées en WAV pour s’assembler proprement ; le rappel final est encodé une seule fois en Opus.
+  </Step>
+
+  <Step title="Le lancer">
+    ```bash
+    python reminders.py
+    ```
+    Relancez-le demain avec de nouveaux prénoms : la salutation et le message viennent du cache.
+  </Step>
+</Steps>
+
+## Avant d’envoyer quoi que ce soit
+
+- **Faites écouter par un locuteur natif** chaque phrase fixe avant qu’elle n’arrive aux familles. Corrigez le texte, pas l’audio.
+- **Dites qui parle.** Commencez par le nom du centre de santé, et dites aux familles que la voix est générée.
+- **Obtenez le consentement** pour les rappels, et rendez leur arrêt facile.
+- **Gardez les prénoms hors des journaux.** Conservez ce dont vous avez besoin pour envoyer, rien de plus.
+
+## Pour aller plus loin
+
+<CardGroup cols={2}>
+  <Card title="Usage responsable" icon="shield-check" href="/fr/resources/responsible-use">Ce à quoi l’API sert, et ne sert pas</Card>
+  <Card title="Consommation" icon="gauge" href="/fr/guides/usage-and-rate-limits">Surveillez le quota du mois</Card>
+</CardGroup>

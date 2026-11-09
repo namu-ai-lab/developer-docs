@@ -1,0 +1,114 @@
+---
+title: "Erreurs"
+description: "Chaque erreur a la même forme, un code stable à tester dans votre code, et un identifiant de requête à nous envoyer."
+icon: "triangle-alert"
+---
+
+Quand une requête échoue, l’API répond avec un statut HTTP et ce corps :
+
+```json
+{
+  "error": {
+    "type": "unknown_voice",
+    "message": "Unknown voice. Try one of: nadia, warm, fr, mouhamad.",
+    "request_id": "3f2a9c1e5b7d4e8fa0c2b6d9e1f3a5c7"
+  }
+}
+```
+
+- **`type`** est stable : c’est lui que votre code doit tester.
+- **`message`** est écrit pour un développeur. Il peut changer : ne l’analysez pas, et ne le montrez pas tel quel à vos utilisateurs.
+- **`request_id`** figure aussi dans l’en-tête `X-Request-Id` de chaque réponse, réussie ou non. Joignez-le quand vous [nous écrivez](/fr/resources/support).
+
+## Que faire selon le statut
+
+| Statut | Signification | Réessayer ? |
+| --- | --- | --- |
+| `400` | La requête n’est pas utilisable telle qu’elle a été envoyée | Non : corrigez la requête |
+| `401` | Pas de clé, une clé qui n’est pas une clé Namu, ou une clé révoquée | Non : corrigez la clé |
+| `403` | La clé n’a pas le droit de faire cela, ou le compte est en pause | Non |
+| `404` / `405` | Ce point d’accès n’existe pas, ou la méthode n’est pas la bonne | Non |
+| `413` | Trop grand : fichier, durée de l’audio ou texte | Non : réduisez la taille |
+| `415` | L’audio n’a pas pu être lu | Non : envoyez un autre format |
+| `422` | Aucune parole n’a été trouvée dans l’audio | Demandez à la personne de parler à nouveau |
+| `429` | Limite de débit ou quota mensuel atteint | `rate_limited` : oui, après `Retry-After`. `quota_exceeded` : non |
+| `500`, `502`, `503`, `504` | Un problème de notre côté | Oui, après une pause |
+
+Une requête qui échoue ne compte pas dans votre quota.
+
+## Tous les codes
+
+<AccordionGroup>
+  <Accordion title="400 · la requête" icon="circle-x">
+    | `type` | Quand |
+    | --- | --- |
+    | `invalid_request` | Le corps n’a pas pu être lu, ou n’a pas la forme attendue par ce point d’accès. Aussi pour un `format` inconnu. |
+    | `invalid_json` | Le corps n’est pas du JSON alors que du JSON est attendu. |
+    | `missing_text` | `text` est absent ou vide. |
+    | `missing_file` | Aucun champ multipart nommé `file`. |
+    | `empty_audio` | Le fichier audio est vide. |
+    | `unknown_voice` | Cette voix n’existe pas. Le message donne la liste des voix. |
+    | `unsupported_language` | Le point d’accès, ou la voix, ne parle pas cette langue. |
+    | `unsupported_pair` | La traduction se fait uniquement entre le haoussa et le français. |
+    | `unknown_persona` | Le seul personnage de l’agent vocal est `nadia`. |
+  </Accordion>
+  <Accordion title="401 et 403 · la clé" icon="key-round">
+    | `type` | Quand |
+    | --- | --- |
+    | `missing_api_key` | Pas d’en-tête `Authorization: Bearer`. |
+    | `invalid_api_key` | Ce n’est pas une clé Namu, ou c’est une clé que nous ne connaissons pas. |
+    | `key_revoked` | La clé a été révoquée dans la console. |
+    | `insufficient_scope` | La clé n’a pas la permission de ce point d’accès. Voir les [permissions](/fr/guides/api-keys#permissions). |
+    | `account_paused` | Le compte est en pause. Écrivez à contact@namuai.org. |
+  </Accordion>
+  <Accordion title="413, 415, 422 · le contenu" icon="file-music">
+    | `type` | Quand |
+    | --- | --- |
+    | `payload_too_large` | L’audio dépasse 25 Mo. |
+    | `audio_too_long` | L’audio dépasse 300 secondes. |
+    | `text_too_long` | Le texte dépasse 2 000 caractères. |
+    | `unsupported_audio` | Le fichier n’est pas un audio que nous savons lire. Envoyez du WAV, MP3, M4A, AAC, OGG, WebM ou FLAC. |
+    | `nothing_heard` | Aucune parole dans l’enregistrement (traduction et agent vocal). |
+  </Accordion>
+  <Accordion title="429 · les limites" icon="gauge">
+    | `type` | Quand |
+    | --- | --- |
+    | `rate_limited` | Trop de requêtes cette minute pour cette clé, ou trop de clés inconnues depuis votre adresse. Attendez `Retry-After` secondes. |
+    | `quota_exceeded` | Le quota de ce mois est épuisé. Il revient le 1er (UTC). |
+  </Accordion>
+  <Accordion title="5xx · de notre côté" icon="server">
+    | `type` | Quand |
+    | --- | --- |
+    | `internal_error` | Une erreur inattendue dans l’API. |
+    | `encode_failed` | L’audio n’a pas pu être encodé dans le format demandé. |
+    | `upstream_error` | Le modèle n’a pas répondu comme prévu. |
+    | `auth_unavailable` | Nous n’avons pas pu vérifier votre clé à cet instant. |
+    | `upstream_timeout` | Le modèle a mis trop de temps. |
+  </Accordion>
+</AccordionGroup>
+
+## Gérer les erreurs dans le code
+
+<CodeGroup>
+  ```python Python
+  response = requests.post(url, headers=headers, json=body, timeout=300)
+  if not response.ok:
+      error = response.json()["error"]
+      if error["type"] == "quota_exceeded":
+          tell_user("Voice is resting until next month.")
+      elif response.status_code in (429, 502, 503, 504):
+          retry_later(error["request_id"])
+      else:
+          log.error("Namu API %s: %s (%s)", error["type"], error["message"], error["request_id"])
+  ```
+
+  ```javascript JavaScript
+  const response = await fetch(url, { method: "POST", headers, body });
+  if (!response.ok) {
+    const { error } = await response.json();
+    if (error.type === "quota_exceeded") showMessage("Voice is resting until next month.");
+    else if ([429, 502, 503, 504].includes(response.status)) retryLater(error.request_id);
+    else console.error(`Namu API ${error.type}: ${error.message} (${error.request_id})`);
+  }
+  ```
+</CodeGroup>

@@ -64,7 +64,6 @@
     ]
   },
   "api": {
-    "openapi": "api-reference/openapi.yaml",
     "playground": {
       "display": "interactive"
     },
@@ -78,202 +77,422 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Overview",
-        "groups": [
+        "language": "en",
+        "tabs": [
           {
-            "group": "Get started",
-            "pages": [
-              "index",
-              "quickstart",
-              "pricing-and-limits"
+            "tab": "Overview",
+            "groups": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "index",
+                  "quickstart",
+                  "pricing-and-limits"
+                ]
+              },
+              {
+                "group": "SDKs and tools",
+                "pages": [
+                  "sdks/overview",
+                  "sdks/python",
+                  "sdks/javascript",
+                  "sdks/http"
+                ]
+              },
+              {
+                "group": "Mobile apps",
+                "pages": [
+                  "sdks/android",
+                  "sdks/ios"
+                ]
+              },
+              {
+                "group": "Resources",
+                "pages": [
+                  "resources/changelog",
+                  "resources/support",
+                  "resources/responsible-use",
+                  "resources/glossary"
+                ]
+              }
             ]
           },
           {
-            "group": "SDKs and tools",
-            "pages": [
-              "sdks/overview",
-              "sdks/python",
-              "sdks/javascript",
-              "sdks/http"
+            "tab": "Models",
+            "groups": [
+              {
+                "group": "Models",
+                "pages": [
+                  "models",
+                  "voices-and-languages"
+                ]
+              }
             ]
           },
           {
-            "group": "Mobile apps",
-            "pages": [
-              "sdks/android",
-              "sdks/ios"
+            "tab": "Text to speech",
+            "groups": [
+              {
+                "group": "Text to speech",
+                "pages": [
+                  "capabilities/text-to-speech",
+                  "guides/audio-formats"
+                ]
+              },
+              {
+                "group": "Build",
+                "pages": [
+                  "tutorials/read-aloud-in-hausa",
+                  "tutorials/voice-messages-for-a-clinic"
+                ]
+              }
             ]
           },
           {
-            "group": "Resources",
-            "pages": [
-              "resources/changelog",
-              "resources/support",
-              "resources/responsible-use",
-              "resources/glossary"
+            "tab": "Speech to text",
+            "groups": [
+              {
+                "group": "Speech to text",
+                "pages": [
+                  "capabilities/speech-to-text"
+                ]
+              },
+              {
+                "group": "Build",
+                "pages": [
+                  "tutorials/transcribe-a-voice-note"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Translation",
+            "groups": [
+              {
+                "group": "Translation",
+                "pages": [
+                  "capabilities/translation"
+                ]
+              },
+              {
+                "group": "Build",
+                "pages": [
+                  "tutorials/hausa-french-interpreter"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Voice agent",
+            "groups": [
+              {
+                "group": "Voice agent",
+                "pages": [
+                  "capabilities/voice-agent"
+                ]
+              },
+              {
+                "group": "Build",
+                "pages": [
+                  "tutorials/talk-to-the-voice-agent"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Production",
+            "groups": [
+              {
+                "group": "Production",
+                "pages": [
+                  "guides/production-checklist",
+                  "guides/api-keys",
+                  "guides/errors",
+                  "guides/usage-and-rate-limits",
+                  "guides/weak-networks"
+                ]
+              },
+              {
+                "group": "Build",
+                "pages": [
+                  "tutorials/first-call",
+                  "tutorials/watch-your-usage"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API reference",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "api-reference/introduction",
+                  "api-reference/authentication",
+                  "api-reference/errors"
+                ]
+              },
+              {
+                "group": "Speech",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "POST /v1/speech"
+                ]
+              },
+              {
+                "group": "Transcription",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "POST /v1/transcribe"
+                ]
+              },
+              {
+                "group": "Translation",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "POST /v1/translate"
+                ]
+              },
+              {
+                "group": "Voice agent",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "POST /v1/converse"
+                ]
+              },
+              {
+                "group": "Models and voices",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /v1/models",
+                  "GET /v1/voices"
+                ]
+              },
+              {
+                "group": "Account",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /v1/usage",
+                  "GET /v1/health"
+                ]
+              }
             ]
           }
         ]
       },
       {
-        "tab": "Models",
-        "groups": [
-          {
-            "group": "Models",
-            "pages": [
-              "models",
-              "voices-and-languages"
-            ]
+        "language": "fr",
+        "banner": {
+          "content": "L’API Namu est en bêta : chaque compte reçoit **30 minutes d’audio gratuites par mois**. [Obtenir une clé →](https://www.namuai-lab.com/fr/account/keys)",
+          "dismissible": true
+        },
+        "navbar": {
+          "links": [
+            {
+              "label": "Namu AI Lab",
+              "href": "https://www.namuai-lab.com/fr"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "Console de l’API",
+            "href": "https://www.namuai-lab.com/fr/account"
           }
-        ]
-      },
-      {
-        "tab": "Text to speech",
-        "groups": [
+        },
+        "tabs": [
           {
-            "group": "Text to speech",
-            "pages": [
-              "capabilities/text-to-speech",
-              "guides/audio-formats"
+            "tab": "Vue d’ensemble",
+            "groups": [
+              {
+                "group": "Démarrer",
+                "pages": [
+                  "fr/index",
+                  "fr/quickstart",
+                  "fr/pricing-and-limits"
+                ]
+              },
+              {
+                "group": "SDK et outils",
+                "pages": [
+                  "fr/sdks/overview",
+                  "fr/sdks/python",
+                  "fr/sdks/javascript",
+                  "fr/sdks/http"
+                ]
+              },
+              {
+                "group": "Applications mobiles",
+                "pages": [
+                  "fr/sdks/android",
+                  "fr/sdks/ios"
+                ]
+              },
+              {
+                "group": "Ressources",
+                "pages": [
+                  "fr/resources/changelog",
+                  "fr/resources/support",
+                  "fr/resources/responsible-use",
+                  "fr/resources/glossary"
+                ]
+              }
             ]
           },
           {
-            "group": "Build",
-            "pages": [
-              "tutorials/read-aloud-in-hausa",
-              "tutorials/voice-messages-for-a-clinic"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Speech to text",
-        "groups": [
-          {
-            "group": "Speech to text",
-            "pages": [
-              "capabilities/speech-to-text"
+            "tab": "Modèles",
+            "groups": [
+              {
+                "group": "Modèles",
+                "pages": [
+                  "fr/models",
+                  "fr/voices-and-languages"
+                ]
+              }
             ]
           },
           {
-            "group": "Build",
-            "pages": [
-              "tutorials/transcribe-a-voice-note"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Translation",
-        "groups": [
-          {
-            "group": "Translation",
-            "pages": [
-              "capabilities/translation"
-            ]
-          },
-          {
-            "group": "Build",
-            "pages": [
-              "tutorials/hausa-french-interpreter"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Voice agent",
-        "groups": [
-          {
-            "group": "Voice agent",
-            "pages": [
-              "capabilities/voice-agent"
+            "tab": "Synthèse vocale",
+            "groups": [
+              {
+                "group": "Synthèse vocale",
+                "pages": [
+                  "fr/capabilities/text-to-speech",
+                  "fr/guides/audio-formats"
+                ]
+              },
+              {
+                "group": "Construire",
+                "pages": [
+                  "fr/tutorials/read-aloud-in-hausa",
+                  "fr/tutorials/voice-messages-for-a-clinic"
+                ]
+              }
             ]
           },
           {
-            "group": "Build",
-            "pages": [
-              "tutorials/talk-to-the-voice-agent"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Production",
-        "groups": [
-          {
-            "group": "Production",
-            "pages": [
-              "guides/production-checklist",
-              "guides/api-keys",
-              "guides/errors",
-              "guides/usage-and-rate-limits",
-              "guides/weak-networks"
+            "tab": "Transcription",
+            "groups": [
+              {
+                "group": "Transcription",
+                "pages": [
+                  "fr/capabilities/speech-to-text"
+                ]
+              },
+              {
+                "group": "Construire",
+                "pages": [
+                  "fr/tutorials/transcribe-a-voice-note"
+                ]
+              }
             ]
           },
           {
-            "group": "Build",
-            "pages": [
-              "tutorials/first-call",
-              "tutorials/watch-your-usage"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/authentication",
-              "api-reference/errors"
+            "tab": "Traduction",
+            "groups": [
+              {
+                "group": "Traduction",
+                "pages": [
+                  "fr/capabilities/translation"
+                ]
+              },
+              {
+                "group": "Construire",
+                "pages": [
+                  "fr/tutorials/hausa-french-interpreter"
+                ]
+              }
             ]
           },
           {
-            "group": "Speech",
-            "openapi": "api-reference/openapi.yaml",
-            "pages": [
-              "POST /v1/speech"
+            "tab": "Agent vocal",
+            "groups": [
+              {
+                "group": "Agent vocal",
+                "pages": [
+                  "fr/capabilities/voice-agent"
+                ]
+              },
+              {
+                "group": "Construire",
+                "pages": [
+                  "fr/tutorials/talk-to-the-voice-agent"
+                ]
+              }
             ]
           },
           {
-            "group": "Transcription",
-            "openapi": "api-reference/openapi.yaml",
-            "pages": [
-              "POST /v1/transcribe"
+            "tab": "Production",
+            "groups": [
+              {
+                "group": "Production",
+                "pages": [
+                  "fr/guides/production-checklist",
+                  "fr/guides/api-keys",
+                  "fr/guides/errors",
+                  "fr/guides/usage-and-rate-limits",
+                  "fr/guides/weak-networks"
+                ]
+              },
+              {
+                "group": "Construire",
+                "pages": [
+                  "fr/tutorials/first-call",
+                  "fr/tutorials/watch-your-usage"
+                ]
+              }
             ]
           },
           {
-            "group": "Translation",
-            "openapi": "api-reference/openapi.yaml",
-            "pages": [
-              "POST /v1/translate"
-            ]
-          },
-          {
-            "group": "Voice agent",
-            "openapi": "api-reference/openapi.yaml",
-            "pages": [
-              "POST /v1/converse"
-            ]
-          },
-          {
-            "group": "Models and voices",
-            "openapi": "api-reference/openapi.yaml",
-            "pages": [
-              "GET /v1/models",
-              "GET /v1/voices"
-            ]
-          },
-          {
-            "group": "Account",
-            "openapi": "api-reference/openapi.yaml",
-            "pages": [
-              "GET /v1/usage",
-              "GET /v1/health"
+            "tab": "Référence de l’API",
+            "groups": [
+              {
+                "group": "Vue d’ensemble",
+                "pages": [
+                  "fr/api-reference/introduction",
+                  "fr/api-reference/authentication",
+                  "fr/api-reference/errors"
+                ]
+              },
+              {
+                "group": "Synthèse vocale",
+                "pages": [
+                  "fr/api-reference/speech/create-speech"
+                ]
+              },
+              {
+                "group": "Transcription",
+                "pages": [
+                  "fr/api-reference/transcription/create-transcription"
+                ]
+              },
+              {
+                "group": "Traduction",
+                "pages": [
+                  "fr/api-reference/translation/create-translation"
+                ]
+              },
+              {
+                "group": "Agent vocal",
+                "pages": [
+                  "fr/api-reference/voice-agent/converse"
+                ]
+              },
+              {
+                "group": "Modèles et voix",
+                "pages": [
+                  "fr/api-reference/models-and-voices/list-models",
+                  "fr/api-reference/models-and-voices/list-voices"
+                ]
+              },
+              {
+                "group": "Compte",
+                "pages": [
+                  "fr/api-reference/account/get-usage",
+                  "fr/api-reference/account/health"
+                ]
+              }
             ]
           }
         ]

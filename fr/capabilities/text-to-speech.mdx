@@ -1,0 +1,147 @@
+---
+title: "Synthèse vocale"
+description: "Transformez un texte en parole naturelle en haoussa, en zarma ou en français, avec une voix à laquelle vos auditeurs feront confiance."
+icon: "audio-lines"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+import { VoiceGallery } from "/snippets/voices.jsx";
+
+<VideoSlot title="La synthèse vocale en haoussa, en zarma et en français" duration="4 min" lang="fr" />
+
+## Vue d’ensemble
+
+`POST /v1/speech` reçoit jusqu’à 2 000 caractères de texte et renvoie l’audio, dit par la voix de votre choix. Utilisez-le pour lire des messages aux personnes qui préfèrent écouter plutôt que lire : rappels de santé, conseils agricoles, leçons d’école, annonces, réponse dans une application de messagerie.
+
+- **Modèle :** `speech-synthesis` (bêta)
+- **Langues :** haoussa `ha`, zarma `dje`, français `fr`
+- **Sortie :** WAV (par défaut), MP3, Ogg Opus, ou JSON avec l’audio en base64
+- **Ce qui est compté :** la durée de l’audio renvoyé
+
+## Démarrage rapide
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/speech \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.", "voice": "nadia", "format": "mp3"}' \
+    -o farming.mp3
+  ```
+
+  ```python Python
+  import os
+  import requests
+
+  response = requests.post(
+      "https://api.namuai-lab.com/v1/speech",
+      headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+      json={
+          "text": "Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.",
+          "voice": "nadia",
+          "format": "mp3",
+      },
+      timeout=120,
+  )
+  response.raise_for_status()
+  open("farming.mp3", "wb").write(response.content)
+  ```
+
+  ```javascript JavaScript
+  const response = await fetch("https://api.namuai-lab.com/v1/speech", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.NAMU_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: "Damina ta kama. Lokaci ya yi da manoma su fara shuka gero da dawa.",
+      voice: "nadia",
+      format: "mp3",
+    }),
+  });
+  const audio = Buffer.from(await response.arrayBuffer());
+  ```
+</CodeGroup>
+
+*« La saison des pluies s’est installée. Il est temps pour les agriculteurs de commencer à semer le mil et le sorgho. »*
+
+## Requête
+
+<ParamField body="text" type="string" required>
+  Le texte à dire, jusqu’à 2 000 caractères. Écrivez-le comme vous voulez qu’il soit entendu : développez les abréviations que vos auditeurs ne prononceraient pas.
+</ParamField>
+
+<ParamField body="voice" type="string" default="nadia">
+  `nadia` (ou son alias `warm`), `mouhamad` ou `fr`. Voir les [voix](/fr/voices-and-languages).
+</ParamField>
+
+<ParamField body="language" type="string">
+  `ha`, `dje` ou `fr`. Par défaut, la première langue de la voix ; ce doit être une langue que la voix parle.
+</ParamField>
+
+<ParamField body="format" type="string" default="wav">
+  `wav`, `mp3`, `opus` ou `json`. Voir les [formats de sortie](#formats-de-sortie).
+</ParamField>
+
+## Voix
+
+<VoiceGallery lang="fr" />
+
+## Formats de sortie
+
+| `format` | Type de contenu | Audio | Idéal pour |
+| --- | --- | --- | --- |
+| `wav` | `audio/wav` | 24 kHz, PCM 16 bits, mono | Le montage, ou le passage à d’autres outils audio |
+| `mp3` | `audio/mpeg` | 64 kbit/s, mono | La lecture partout, sur tous les navigateurs et tous les téléphones |
+| `opus` | `audio/ogg` | Ogg Opus, 48 kHz, 32 kbit/s, mono | **Le fichier le plus léger.** Les données mobiles, les messages vocaux à la manière de WhatsApp |
+| `json` | `application/json` | WAV en base64 dans le champ `audio` | Quand votre environnement ne sait traiter que du JSON |
+
+Les formats binaires renvoient un en-tête `X-Audio-Seconds` avec la durée de l’audio. Une phrase de dix secondes pèse environ 480 Ko en WAV, 80 Ko en MP3 et 40 Ko en Opus : sur une connexion 3G, choisissez `opus` ou `mp3`.
+
+Avec `json`, la réponse ressemble à ceci :
+
+```json
+{
+  "model": "speech-synthesis",
+  "voice": "nadia",
+  "language": "ha",
+  "audio_seconds": 4.2,
+  "audio": "UklGRiQAAABXQVZFZm10IBAAAAABAAEAwF0AAIC7AAACABAAZGF0YQAAAAA...",
+  "sample_rate": 24000
+}
+```
+
+## Bonnes pratiques
+
+<AccordionGroup>
+  <Accordion title="Faites des phrases courtes" icon="scissors">
+    Une idée par phrase s’entend plus clairement et se suit plus facilement sur le haut-parleur d’un téléphone. Pour un long texte, envoyez-le paragraphe par paragraphe et jouez les morceaux l’un après l’autre : la lecture du premier commence plus tôt.
+  </Accordion>
+  <Accordion title="Écrivez les nombres et les dates comme on les dit" icon="hash">
+    Écrivez « goma sha biyar » plutôt que « 15 » quand un nombre doit être dit d’une certaine façon, et écrivez en toutes lettres les dates, les prix et les abréviations. Vous décidez exactement de ce qui est entendu.
+  </Accordion>
+  <Accordion title="Générez une fois, diffusez autant que vous voulez" icon="repeat">
+    Un rappel envoyé à mille personnes, c’est le même audio. Générez-le une fois, stockez le fichier et servez-le depuis votre propre stockage : vous économisez votre quota et le chargement est plus rapide pour tout le monde.
+  </Accordion>
+  <Accordion title="Attendez-vous à de petites différences d’une prise à l’autre" icon="shuffle">
+    Le modèle dit une phrase un peu différemment à chaque fois. Si une prise compte (une annonce, un jingle), générez-en deux ou trois et gardez celle que vous préférez.
+  </Accordion>
+  <Accordion title="Dites aux gens que la voix est une IA" icon="badge-info">
+    Indiquez aux auditeurs que la voix est générée, surtout pour des informations de santé, d’argent ou officielles. Voir l’[usage responsable](/fr/resources/responsible-use).
+  </Accordion>
+</AccordionGroup>
+
+## Limites
+
+- Jusqu’à 2 000 caractères par requête (`413 text_too_long` au-delà).
+- Pas encore de diffusion en continu : le fichier entier arrive en une fois.
+- La première requête après un moment d’inactivité est plus lente, le temps que le modèle se réveille.
+
+## Voir aussi
+
+<CardGroup cols={3}>
+  <Card title="Lire à voix haute en haoussa" icon="circle-play" href="/fr/tutorials/read-aloud-in-hausa">Tutoriel</Card>
+  <Card title="Formats audio" icon="file-music" href="/fr/guides/audio-formats">Guide</Card>
+  <Card title="Référence de l’API" icon="square-terminal" href="/fr/api-reference/speech/create-speech">POST /v1/speech</Card>
+</CardGroup>

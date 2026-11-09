@@ -1,0 +1,111 @@
+---
+title: "iOS (Swift)"
+sidebarTitle: "iOS"
+description: "Enregistrez, transcrivez et produisez de la parole depuis une application iPhone, avec la clé en sécurité sur votre serveur."
+icon: "tablet-smartphone"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="La voix dans une application iPhone" duration="10 min" lang="fr" />
+
+L’application parle à votre serveur ; votre serveur détient la clé Namu et appelle l’API. Utilisez les routes serveur de la [page Android](/fr/sdks/android#1-la-route-du-serveur) : elles servent les deux applications.
+
+```text
+Application iPhone  ──(votre connexion)──►  votre serveur  ──(NAMU_API_KEY)──►  api.namuai-lab.com
+```
+
+## 1. Enregistrer
+
+`AVAudioRecorder` écrit de l’AAC dans un fichier M4A, que l’API lit tel quel. Ajoutez `NSMicrophoneUsageDescription` à votre `Info.plist`.
+
+```swift Recorder.swift
+import AVFoundation
+
+final class Recorder {
+    private var recorder: AVAudioRecorder?
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("note.m4a")
+
+    func start() throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker])
+        try session.setActive(true)
+        recorder = try AVAudioRecorder(url: url, settings: [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: 16_000,
+            AVNumberOfChannelsKey: 1,          // mono, deux fois moins d’octets, les mêmes mots
+            AVEncoderBitRateKey: 32_000,
+        ])
+        recorder?.record()
+    }
+
+    func stop() { recorder?.stop() }
+}
+```
+
+## 2. Envoyer la note à votre serveur
+
+```swift VoiceAPI.swift
+import Foundation
+
+struct VoiceAPI {
+    let baseURL: URL
+    let token: String          // le jeton de votre utilisateur, pas la clé Namu
+
+    private var session: URLSession {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 300   // un modèle qui se réveille peut prendre une minute
+        config.waitsForConnectivity = true       // attendre le réseau au lieu d’échouer tout de suite
+        return URLSession(configuration: config)
+    }
+
+    func transcribe(_ file: URL, language: String = "ha") async throws -> String {
+        let boundary = UUID().uuidString
+        var body = Data()
+        func field(_ name: String, _ value: String) {
+            body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n\(value)\r\n".data(using: .utf8)!)
+        }
+        field("language", language)
+        body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"note.m4a\"\r\nContent-Type: audio/mp4\r\n\r\n".data(using: .utf8)!)
+        body.append(try Data(contentsOf: file))
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/transcribe"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        let (data, response) = try await session.upload(for: request, from: body)
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+        guard (response as? HTTPURLResponse)?.statusCode == 200, let text = json["text"] as? String else {
+            throw URLError(.badServerResponse)
+        }
+        return text
+    }
+
+    func speak(_ text: String) async throws -> Data {
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/speak"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["text": text, "voice": "nadia"])
+        let (data, response) = try await session.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+        return data   // MP3
+    }
+}
+```
+
+## 3. Lire la réponse
+
+```swift
+import AVFoundation
+
+var player: AVAudioPlayer?   // gardez une référence, sinon la lecture s’arrête aussitôt
+
+let mp3 = try await api.speak("Na gode! Mun karɓi saƙonku.")
+player = try AVAudioPlayer(data: mp3)
+player?.play()
+```
+
+Gardez `note.m4a` jusqu’à ce que la transcription réussisse : ainsi, une connexion perdue n’oblige jamais à redemander à la personne de parler.

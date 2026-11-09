@@ -1,0 +1,38 @@
+---
+title: "Authentification"
+description: "Envoyez votre clé secrète comme jeton Bearer."
+icon: "key-round"
+---
+
+L’API Namu utilise des clés secrètes. Envoyez la vôtre dans l’en-tête `Authorization` de chaque requête qui effectue un traitement :
+
+```bash
+curl https://api.namuai-lab.com/v1/usage \
+  -H "Authorization: Bearer $NAMU_API_KEY"
+```
+
+Créez et révoquez vos clés dans la [console](https://www.namuai-lab.com/fr/account/keys). Les clés commencent par `namu_sk_`.
+
+| Point d’accès | Clé | Permission |
+| --- | :---: | --- |
+| `POST /v1/speech` | ✓ | `speech` |
+| `POST /v1/transcribe` | ✓ | `transcribe` |
+| `POST /v1/translate` | ✓ | `translate` |
+| `POST /v1/converse` | ✓ | `converse` (absente par défaut des nouvelles clés) |
+| `GET /v1/usage` | ✓ | n’importe laquelle |
+| `GET /v1/models`, `/v1/voices`, `/v1/health` | | |
+
+## Quand une clé est refusée
+
+| Statut | `type` | Raison |
+| --- | --- | --- |
+| `401` | `missing_api_key` | Pas d’en-tête `Authorization: Bearer` |
+| `401` | `invalid_api_key` | Pas une clé Namu, ou une clé que nous ne connaissons pas |
+| `401` | `key_revoked` | Révoquée dans la console (effet sous 30 secondes environ) |
+| `403` | `insufficient_scope` | La clé n’a pas la permission de ce point d’accès |
+| `403` | `account_paused` | Le compte est en pause |
+| `429` | `rate_limited` | Trop de clés inconnues depuis votre adresse |
+
+<Warning>
+  Gardez les clés sur votre serveur. Ne les livrez jamais dans une application mobile ni dans du code exécuté par le navigateur. Voir [Clés d’API](/fr/guides/api-keys#garder-les-clés-secrètes).
+</Warning>

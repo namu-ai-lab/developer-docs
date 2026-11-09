@@ -1,0 +1,61 @@
+---
+title: "Voix et langues"
+description: "Écoutez chaque voix, puis choisissez celle qui convient aux personnes qui l’entendront."
+icon: "audio-lines"
+---
+
+import { VoiceGallery } from "/snippets/voices.jsx";
+
+`/v1/speech` parle avec l’une de ces voix. Chaque enregistrement ci-dessous a été produit par l’API. Appuyez sur lecture pour l’écouter : rien ne se télécharge avant.
+
+<VoiceGallery lang="fr" />
+
+| Voix | `voice` | Langues | Remarques |
+| --- | --- | --- | --- |
+| Nadia | `nadia` | Haoussa | La voix par défaut. Voix féminine, chaleureuse et patiente. |
+| Nadia | `warm` | Haoussa | Un autre nom pour `nadia`. |
+| Mouhamad | `mouhamad` | Zarma, haoussa | Voix masculine. Parle zarma, sauf si vous envoyez `"language": "ha"`. |
+| Français | `fr` | Français | La voix de référence en français. |
+
+Chaque voix est utilisée avec le consentement de la personne dont c’est la voix. L’API ne propose pas de clonage de voix, et une voix dont le consentement n’a pas pu être confirmé a été retirée : une requête qui la nomme reçoit `400 unknown_voice`, jamais une autre voix à sa place.
+
+## Choisir la langue
+
+Une voix parle sa première langue, sauf indication contraire. Pour que Mouhamad parle haoussa :
+
+```json
+{ "text": "Sannu! Yaya kuke?", "voice": "mouhamad", "language": "ha" }
+```
+
+Demander à une voix une langue qu’elle ne parle pas renvoie `400 unsupported_language`, avec dans le message les langues qu’elle parle.
+
+## Langues
+
+| Langue | Code | Où on la parle | Transcription | Synthèse vocale | Traduction |
+| --- | --- | --- | :---: | :---: | :---: |
+| Haoussa | `ha` | Au Niger, au Nigeria et dans toute l’Afrique de l’Ouest | ✓ | ✓ | ✓ (avec le français) |
+| Zarma | `dje` | Dans l’ouest du Niger, le long du fleuve | ✓ | ✓ | |
+| Français | `fr` | Parlé au Niger et dans toute l’Afrique de l’Ouest | ✓ | ✓ | ✓ (avec le haoussa) |
+
+<Info>
+  Le peul et le tamasheq font partie des recherches du Lab, pas encore de l’API. Nous ajoutons une langue à l’API quand nous pouvons mesurer qu’elle fonctionne.
+</Info>
+
+## Obtenir la liste dans le code
+
+```bash
+curl https://api.namuai-lab.com/v1/voices
+```
+
+```json
+{
+  "data": [
+    { "id": "nadia", "languages": ["ha"], "language": "ha", "description": "Warm and patient (female)" },
+    { "id": "warm", "languages": ["ha"], "language": "ha", "description": "Alias of nadia" },
+    { "id": "fr", "languages": ["fr"], "language": "fr", "description": "French reference voice" },
+    { "id": "mouhamad", "languages": ["dje", "ha"], "language": "dje", "description": "Male; Zarma and Hausa" }
+  ]
+}
+```
+
+Aucune clé n’est nécessaire. Si vous affichez un choix de voix, lisez cette liste au démarrage de votre application : une nouvelle voix y apparaîtra sans mise à jour.

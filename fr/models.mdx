@@ -1,0 +1,73 @@
+---
+title: "Modèles"
+description: "Quatre modèles, un par tâche. Ce que fait chacun, ses langues, et son degré de maturité."
+icon: "layers"
+---
+
+Derrière chaque point d’accès se trouve un modèle, nommé d’après sa tâche. Vous ne choisissez jamais de modèle dans une requête : appelez le point d’accès, et l’API utilise le modèle qui le sert. La liste est aussi disponible en direct sur [`GET /v1/models`](/fr/api-reference/models-and-voices/list-models), sans clé.
+
+<div className="namu-grid not-prose">
+  <a className="namu-tile" href="/fr/capabilities/speech-to-text">
+    <span className="namu-tile-top"><span className="namu-tile-name">speech-recognition</span><span className="namu-status">Bêta</span></span>
+    <span className="namu-tile-text">Transcrit ce qui a été dit. Haoussa, zarma et français.</span>
+    <code>POST /v1/transcribe · permission transcribe</code>
+  </a>
+  <a className="namu-tile" href="/fr/capabilities/text-to-speech">
+    <span className="namu-tile-top"><span className="namu-tile-name">speech-synthesis</span><span className="namu-status">Bêta</span></span>
+    <span className="namu-tile-text">Lit un texte à voix haute avec la voix choisie. Haoussa, zarma et français.</span>
+    <code>POST /v1/speech · permission speech</code>
+  </a>
+  <a className="namu-tile" href="/fr/capabilities/translation">
+    <span className="namu-tile-top"><span className="namu-tile-name">translation</span><span className="namu-status">Bêta</span></span>
+    <span className="namu-tile-text">Haoussa ⇄ français, à partir d’un texte ou de la parole, avec le résultat dit à voix haute si vous le demandez.</span>
+    <code>POST /v1/translate · permission translate</code>
+  </a>
+  <a className="namu-tile" href="/fr/capabilities/voice-agent">
+    <span className="namu-tile-top"><span className="namu-tile-name">voice-agent</span><span className="namu-status namu-status--research">Recherche</span></span>
+    <span className="namu-tile-text">Tient une conversation orale en haoussa.</span>
+    <code>POST /v1/converse · permission converse</code>
+  </a>
+</div>
+
+## Langues par modèle
+
+| Modèle | Haoussa `ha` | Zarma `dje` | Français `fr` |
+| --- | :---: | :---: | :---: |
+| `speech-recognition` | ✓ | ✓ | ✓ |
+| `speech-synthesis` | ✓ | ✓ | ✓ |
+| `translation` | ✓ | | ✓ |
+| `voice-agent` | ✓ | | |
+
+La traduction fonctionne uniquement entre le haoussa et le français, dans les deux sens. La traduction du zarma n’est pas encore dans l’API.
+
+## Ce que signifie le statut
+
+<AccordionGroup>
+  <Accordion title="Bêta" icon="flask-conical">
+    Prêt pour construire, avec de vrais utilisateurs, pendant que nous continuons d’améliorer la qualité. Le point d’accès et ses champs ne changeront pas sans annonce dans l’[historique des versions](/fr/resources/changelog). La qualité est mesurée et s’améliore : testez donc avec vos propres phrases et vos propres auditeurs avant de vous y fier pour quoi que ce soit d’important.
+  </Accordion>
+  <Accordion title="Recherche" icon="microscope">
+    Un aperçu d’un travail en cours. Utilisez-le pour explorer et nous faire vos retours, pas pour un service dont des personnes dépendent. Il peut changer, être plus lent, ou répondre de façons que nous apprenons encore à connaître. Les nouvelles clés n’incluent pas sa permission, sauf si vous la cochez.
+  </Accordion>
+</AccordionGroup>
+
+## Anciens noms
+
+Le 7 novembre 2026, les modèles ont pris le nom de leur tâche. Si vous voyez les anciens noms dans une intégration ou un message plus ancien, ce sont les mêmes modèles :
+
+| Aujourd’hui | Avant le 7 novembre 2026 |
+| --- | --- |
+| `speech-recognition` | `tatsuniya` |
+| `speech-synthesis` | `tafiya` |
+| `translation` | `kora` |
+| `voice-agent` | `air` |
+
+Les requêtes ne nomment jamais de modèle : rien ne doit changer dans votre code.
+
+## À savoir
+
+- **Les transcriptions** arrivent en minuscules, sans ponctuation.
+- **La parole** revient en WAV par défaut ; demandez `opus` pour les fichiers les plus petits ([formats audio](/fr/guides/audio-formats)).
+- **La première requête après un moment d’inactivité** est plus lente, le temps que le modèle se réveille. Prévoyez jusqu’à deux minutes environ pour ce premier appel, et gardez un délai d’attente généreux.
+- **Où le travail est fait.** `speech-recognition` et `speech-synthesis` tournent sur les propres modèles de Namu. Les traductions de `translation` et les réponses de `voice-agent` sont rédigées par Google Gemini via OpenRouter, qui reçoit le texte à traiter.
+- **Relecture par des locuteurs natifs.** Les exemples en haoussa et en zarma de cette documentation n’ont pas encore tous été relus par des locuteurs natifs. Si vous voyez une erreur, [dites-le-nous](/fr/resources/support).

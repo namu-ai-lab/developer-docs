@@ -1,0 +1,45 @@
+---
+title: "Erreurs"
+description: "Une seule forme d’erreur pour tous les points d’accès."
+icon: "triangle-alert"
+---
+
+```json
+{
+  "error": {
+    "type": "text_too_long",
+    "message": "'text' must be 2000 characters or fewer.",
+    "request_id": "3f2a9c1e5b7d4e8fa0c2b6d9e1f3a5c7"
+  }
+}
+```
+
+<ResponseField name="error.type" type="string">
+  Un code stable. C’est sur lui que votre code doit s’appuyer.
+</ResponseField>
+
+<ResponseField name="error.message" type="string">
+  Ce qui s’est passé, à l’intention des développeurs. Il peut changer : ne l’analysez pas.
+</ResponseField>
+
+<ResponseField name="error.request_id" type="string">
+  Le même que l’en-tête `X-Request-Id`. Envoyez-le-nous avec toute question sur une requête.
+</ResponseField>
+
+| Statut | Codes |
+| --- | --- |
+| `400` | `invalid_request`, `invalid_json`, `missing_text`, `missing_file`, `empty_audio`, `unknown_voice`, `unsupported_language`, `unsupported_pair`, `unknown_persona` |
+| `401` | `missing_api_key`, `invalid_api_key`, `key_revoked` |
+| `403` | `insufficient_scope`, `account_paused` |
+| `404` | `not_found` |
+| `405` | `method_not_allowed` |
+| `413` | `payload_too_large`, `audio_too_long`, `text_too_long` |
+| `415` | `unsupported_audio` |
+| `422` | `nothing_heard` |
+| `429` | `rate_limited`, `quota_exceeded` |
+| `500` | `internal_error`, `encode_failed` |
+| `502` | `upstream_error` |
+| `503` | `auth_unavailable` |
+| `504` | `upstream_timeout` |
+
+Ce que chacun signifie et ce qu’il faut faire : [le guide des erreurs](/fr/guides/errors).

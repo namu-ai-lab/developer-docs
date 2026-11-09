@@ -1,0 +1,69 @@
+---
+title: "Parler à l’agent vocal"
+sidebarTitle: "Parler à l’agent vocal"
+description: "Une conversation parlée en haoussa depuis votre terminal : enregistrer, envoyer, écouter, recommencer."
+icon: "message-circle"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Parler à l’agent vocal" duration="7 min" lang="fr" />
+
+<Note>L’agent vocal est un aperçu de recherche. Ses réponses peuvent être fausses ; servez-vous-en pour explorer.</Note>
+
+**Ce que vous allez construire :** une boucle dans le terminal. Appuyez sur Entrée, parlez en haoussa jusqu’à huit secondes, et écoutez Nadia répondre.
+
+**Ce qu’il vous faut :**
+- une clé avec la permission **Agent vocal · converse** ([en créer une](https://www.namuai-lab.com/fr/account/keys)) ;
+- Python 3.9 ou plus récent et la [bibliothèque Python](/fr/sdks/python) (`pip install namu-ai`) ;
+- `ffmpeg` pour enregistrer depuis le micro, et `ffplay` (installé avec lui) pour écouter la réponse.
+
+<Steps>
+  <Step title="La boucle">
+    ```python talk.py
+    import base64
+    import platform
+    import subprocess
+    import uuid
+    from pathlib import Path
+
+    from namu import Namu, NamuError
+
+    client = Namu()
+    session = uuid.uuid4().hex[:12]          # renvoyé par l’API, pour retrouver les tours dans vos journaux
+    MIC = {"Darwin": ["-f", "avfoundation", "-i", ":0"],
+           "Linux": ["-f", "alsa", "-i", "default"],
+           "Windows": ["-f", "dshow", "-i", "audio=Microphone"]}[platform.system()]
+
+    while True:
+        input("Press Enter and speak in Hausa (Ctrl+C to stop)… ")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *MIC, "-t", "8", "-ac", "1", "-ar", "16000", "you.wav"], check=True)
+        try:
+            turn = client.converse(Path("you.wav"), session_id=session)
+        except NamuError as e:
+            print("…", "Speak again, please." if e.type == "nothing_heard" else e.type)
+            continue
+        print("You:  ", turn["heard"])
+        print("Nadia:", turn["reply"])
+        Path("nadia.wav").write_bytes(base64.b64decode(turn["audio"]))
+        subprocess.run(["ffplay", "-autoexit", "-nodisp", "-loglevel", "error", "nadia.wav"])
+    ```
+    Sous Windows, remplacez `Microphone` par le nom de votre périphérique, donné par `ffmpeg -list_devices true -f dshow -i dummy`.
+  </Step>
+
+  <Step title="Parler">
+    ```bash
+    python talk.py
+    ```
+    Essayez *« Sannu, yaya kike? »* (Bonjour, comment vas-tu ?).
+  </Step>
+</Steps>
+
+Chaque tour est indépendant : l’API ne se souvient pas des tours précédents. Chaque tour compte l’audio que vous avez envoyé plus la réponse de Nadia.
+
+## Pour aller plus loin
+
+<CardGroup cols={2}>
+  <Card title="Agent vocal" icon="message-circle" href="/fr/capabilities/voice-agent">Ce qu’il sait faire, et ce qu’il ne fait pas encore</Card>
+  <Card title="Dites-nous ce dont vous avez besoin" icon="life-buoy" href="/fr/resources/support">Vos retours orientent l’agent</Card>
+</CardGroup>

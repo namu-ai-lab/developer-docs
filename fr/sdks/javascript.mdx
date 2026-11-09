@@ -1,0 +1,149 @@
+---
+title: "JavaScript et TypeScript"
+description: "La bibliothèque JavaScript et TypeScript officielle de l’API Namu, sans dépendances, pour Node, Deno, Bun et Cloudflare Workers."
+icon: "braces"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="L’API Namu depuis Node.js" duration="6 min" lang="fr" />
+
+## Installation
+
+```bash
+npm install namu-ai
+```
+
+Node 18 ou plus récent, Deno, Bun ou Cloudflare Workers. Les types sont inclus. Définissez ensuite votre clé :
+
+```bash
+export NAMU_API_KEY="namu_sk_..."
+```
+
+<Warning>
+  Côté serveur uniquement. N’importez pas ce client dans du code qui s’exécute dans un navigateur ou dans une application React Native : la clé voyagerait avec lui.
+</Warning>
+
+## Démarrage rapide
+
+```typescript
+import { writeFile, readFile } from "node:fs/promises";
+import { Namu } from "namu-ai";
+
+const namu = new Namu(); // lit NAMU_API_KEY
+
+// Synthèse vocale
+const audio = await namu.speech("Sannu da zuwa! Muna farin cikin jin muryarku.", { voice: "nadia", format: "mp3" });
+await writeFile("welcome.mp3", Buffer.from(audio));
+
+// Transcription
+const { text } = await namu.transcribe(await readFile("welcome.mp3"), { language: "ha" });
+console.log(text);
+```
+
+## Utilisation
+
+<AccordionGroup>
+  <Accordion title="Synthèse vocale" icon="audio-lines" defaultOpen>
+    ```typescript
+    const audio = await namu.speech("Fofo! Mate ni go?", { voice: "mouhamad", language: "dje", format: "opus" });
+    ```
+  </Accordion>
+
+  <Accordion title="Transcription" icon="mic">
+    ```typescript
+    const result = await namu.transcribe(await readFile("voice-note.ogg"), { language: "ha" });
+    console.log(result.text, result.audio_seconds);
+    ```
+  </Accordion>
+
+  <Accordion title="Traduction" icon="languages">
+    ```typescript
+    const fr = await namu.translate({ text: "Ina kwana? Yau za a yi zafi sosai." }, { source: "ha", target: "fr" });
+
+    const spoken = await namu.translate({ audio: await readFile("question.ogg") }, { source: "ha", target: "fr", includeAudio: true });
+    await writeFile("answer.wav", Buffer.from(spoken.audio!, "base64"));
+    ```
+  </Accordion>
+
+  <Accordion title="Agent vocal (recherche)" icon="message-circle">
+    ```typescript
+    const turn = await namu.converse(await readFile("hello.ogg"), { sessionId: "demo-42" });
+    console.log(turn.heard, "→", turn.reply);
+    ```
+    La clé doit avoir la permission `converse`.
+  </Accordion>
+
+  <Accordion title="Consommation, voix et modèles" icon="gauge">
+    ```typescript
+    console.log(await namu.usage());
+    console.log((await namu.voices()).map((v) => v.id)); // [ 'nadia', 'warm', 'fr', 'mouhamad' ]
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Erreurs
+
+Chaque erreur est une `NamuError`, avec une classe par statut (les mêmes que dans la [bibliothèque Python](/fr/sdks/python#erreurs)) :
+
+```typescript
+import { NamuError, QuotaExceededError, BadRequestError, APIConnectionError } from "namu-ai";
+
+try {
+  await namu.speech(text);
+} catch (err) {
+  if (err instanceof QuotaExceededError) { /* le quota de ce mois est épuisé */ }
+  else if (err instanceof BadRequestError) console.error(err.type, err.message);
+  else if (err instanceof APIConnectionError) { /* l’API est restée injoignable, même après les nouvelles tentatives */ }
+  else if (err instanceof NamuError) console.error(err.status, err.type, err.requestId);
+  else throw err;
+}
+```
+
+## Nouvelles tentatives et délais d’attente
+
+Le client réessaie jusqu’à 3 fois les erreurs réseau, `429 rate_limited` et `502`/`503`/`504` (`Retry-After`, ou 1, 2, 4 secondes) ; il ne réessaie jamais `quota_exceeded` ni les autres `4xx`. Le délai d’attente par défaut est de 5 minutes.
+
+```typescript
+const namu = new Namu({ timeoutMs: 120_000, maxRetries: 5 });
+```
+
+## Dans un serveur Express
+
+```typescript
+import express from "express";
+import { Namu, NamuError } from "namu-ai";
+
+const app = express();
+const namu = new Namu();
+app.use(express.json());
+
+app.post("/speak", async (req, res) => {
+  // vérifiez ici votre propre utilisateur avant de consommer votre quota
+  try {
+    const audio = await namu.speech(req.body.text, { voice: "nadia", format: "mp3" });
+    res.type("audio/mpeg").send(Buffer.from(audio));
+  } catch (err) {
+    if (err instanceof NamuError) res.status(err.status).json({ error: err.type });
+    else res.status(502).json({ error: "unavailable" });
+  }
+});
+
+app.listen(3000);
+```
+
+## Configuration
+
+| Option | Variable d’environnement | Valeur par défaut |
+| --- | --- | --- |
+| `apiKey` | `NAMU_API_KEY` | aucune |
+| `baseUrl` | `NAMU_BASE_URL` | `https://api.namuai-lab.com` |
+| `timeoutMs` | | 300000 |
+| `maxRetries` | | 3 |
+| `fetch` | | `globalThis.fetch` |
+
+Chaque réponse est typée : `Transcription`, `Translation`, `ConverseTurn`, `Usage`, `VoiceInfo`, `Model`.
+
+## Code source
+
+La bibliothèque est open source (Apache 2.0) : [github.com/namu-ai-lab/namu-sdks](https://github.com/namu-ai-lab/namu-sdks/tree/main/typescript). Les changements sont listés dans son historique des versions.

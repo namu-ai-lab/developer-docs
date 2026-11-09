@@ -1,0 +1,57 @@
+---
+title: "Consommation et limites de débit"
+description: "Comment les requêtes sont comptées, comment savoir où vous en êtes, et comment rester dans les limites."
+icon: "gauge"
+---
+
+## Deux limites
+
+| | Limite | Remise à zéro | Une fois atteinte |
+| --- | --- | --- | --- |
+| **Quota** | 1 800 secondes d’audio (30 minutes) par compte | Le 1er de chaque mois, UTC | `429 quota_exceeded` |
+| **Limite de débit** | 60 requêtes par minute et par clé | Chaque minute | `429 rate_limited` avec `Retry-After` |
+
+Le quota est partagé par toutes les clés d’un compte ; la limite de débit s’applique à chaque clé. [Ce que compte chaque requête](/fr/pricing-and-limits#ce-qui-est-compté).
+
+## Vérifier votre consommation
+
+Dans la [console](https://www.namuai-lab.com/fr/account/usage), ou depuis votre code :
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/usage \
+    -H "Authorization: Bearer $NAMU_API_KEY"
+  ```
+
+  ```python Python
+  usage = requests.get(
+      "https://api.namuai-lab.com/v1/usage",
+      headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+  ).json()
+  left = usage["month_audio_seconds_limit"] - usage["month_audio_seconds_used"]
+  print(f"{left / 60:.1f} minutes left this month")
+  ```
+</CodeGroup>
+
+```json Réponse
+{ "month_audio_seconds_used": 312.4, "month_audio_seconds_limit": 1800.0 }
+```
+
+`/v1/usage` demande une clé (avec n’importe quelle permission), ne compte pas dans la limite de débit, et peut avoir jusqu’à 30 secondes de retard.
+
+## Rester dans les limites
+
+- **Mettez en cache ce que vous répétez.** La même phrase prononcée deux fois coûte deux fois ; stockée une fois, elle coûte une fois.
+- **N’envoyez que de la parole.** Coupez les longs silences au début et à la fin des enregistrements avant de les envoyer : la transcription compte tout le fichier.
+- **Étalez les traitements par lots.** Vous traitez des archives ? Envoyez les requêtes l’une après l’autre plutôt que toutes à la fois, et respectez `Retry-After`.
+- **Surveillez le mois.** En production, consultez `/v1/usage` chaque jour et faites-vous prévenir avant que le quota soit épuisé.
+
+## En-têtes
+
+| En-tête | Présent sur | Signification |
+| --- | --- | --- |
+| `X-Request-Id` | chaque réponse | Un identifiant unique pour la requête |
+| `X-Audio-Seconds` | les réponses audio de `/v1/speech` | La durée de l’audio renvoyé |
+| `Retry-After` | `429 rate_limited` | Le nombre de secondes à attendre avant de réessayer |
+
+Besoin de plus pour un projet pilote ou un lancement ? [Écrivez-nous](/fr/resources/support) en décrivant ce que vous construisez et le volume que vous prévoyez.

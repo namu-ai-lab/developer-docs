@@ -1,0 +1,172 @@
+---
+title: "Traduction"
+description: "Du haoussa vers le français et du français vers le haoussa, à partir d’un texte ou directement de la parole, avec la traduction dite à voix haute si vous le souhaitez."
+icon: "languages"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Traduire entre le haoussa et le français" duration="6 min" lang="fr" />
+
+## Vue d’ensemble
+
+`POST /v1/translate` traduit entre le **haoussa et le français**, dans les deux sens. Il reçoit un texte ou un enregistrement, et peut aussi renvoyer la traduction parlée : une seule requête transforme ainsi une note vocale en haoussa en audio en français.
+
+- **Modèle :** `translation` (bêta)
+- **Sens :** `ha → fr` et `fr → ha`
+- **Entrée :** du texte en JSON (jusqu’à 2 000 caractères), ou de l’audio comme pour la [transcription](/fr/capabilities/speech-to-text#audio-pris-en-charge)
+- **Ce qui est compté :** pour un texte, le nombre de caractères ÷ 15, en secondes ; pour l’audio, la durée envoyée ; plus la traduction parlée si vous la demandez
+
+<Note>
+  La traduction est rédigée par **Google Gemini via OpenRouter**, qui reçoit le texte à traduire (et, pour le français parlé, l’enregistrement, afin de le mettre par écrit). Prévenez vos utilisateurs si leurs messages partent chez un tiers. La transcription et la synthèse vocale tournent sur les propres modèles de Namu.
+</Note>
+
+## Traduire un texte
+
+Envoyez du JSON. `target` est la langue que vous voulez ; `source` est l’autre, sauf indication contraire.
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/translate \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Ina kwana? Yau za a yi zafi sosai.", "source": "ha", "target": "fr"}'
+  ```
+
+  ```python Python
+  import os
+  import requests
+
+  response = requests.post(
+      "https://api.namuai-lab.com/v1/translate",
+      headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+      json={"text": "Ina kwana? Yau za a yi zafi sosai.", "source": "ha", "target": "fr"},
+      timeout=120,
+  )
+  print(response.json()["text"])
+  ```
+
+  ```javascript JavaScript
+  const response = await fetch("https://api.namuai-lab.com/v1/translate", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.NAMU_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text: "Ina kwana? Yau za a yi zafi sosai.", source: "ha", target: "fr" }),
+  });
+  const { text } = await response.json();
+  ```
+</CodeGroup>
+
+```json Réponse
+{
+  "model": "translation",
+  "source": "ha",
+  "target": "fr",
+  "source_text": "Ina kwana? Yau za a yi zafi sosai.",
+  "text": "Bonjour ! Il va faire très chaud aujourd'hui.",
+  "characters": 34,
+  "audio": null
+}
+```
+
+<Note>Les traductions montrées dans cette documentation illustrent la forme de la réponse. Vos résultats varieront selon le texte.</Note>
+
+## Traduire la parole
+
+Envoyez l’enregistrement dans `file`. L’API écrit ce qui a été dit (`source_text`), puis le traduit (`text`) :
+
+<CodeGroup>
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/translate \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -F file=@question.ogg \
+    -F source=ha \
+    -F target=fr
+  ```
+
+  ```python Python
+  with open("question.ogg", "rb") as audio:
+      response = requests.post(
+          "https://api.namuai-lab.com/v1/translate",
+          headers={"Authorization": f"Bearer {os.environ['NAMU_API_KEY']}"},
+          files={"file": audio},
+          data={"source": "ha", "target": "fr"},
+          timeout=300,
+      )
+  result = response.json()
+  print(result["source_text"], "→", result["text"])
+  ```
+
+  ```javascript JavaScript
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("question.ogg")]), "question.ogg");
+  form.append("source", "ha");
+  form.append("target", "fr");
+
+  const result = await fetch("https://api.namuai-lab.com/v1/translate", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.NAMU_API_KEY}` },
+    body: form,
+  }).then((r) => r.json());
+  ```
+</CodeGroup>
+
+Si aucune parole n’est trouvée dans l’enregistrement, la réponse est `422 nothing_heard`.
+
+## Recevoir la traduction parlée
+
+Ajoutez `include_audio` et la réponse contient un champ `audio` : la traduction parlée, en WAV base64 (24 kHz, mono). Avec du JSON, mettez-le dans le corps ; avec de l’audio, en champ de formulaire ou en paramètre de requête.
+
+```json
+{ "text": "Bonjour, comment allez-vous ?", "source": "fr", "target": "ha", "include_audio": true }
+```
+
+```python Python
+import base64
+
+audio = base64.b64decode(response.json()["audio"])
+open("translation.wav", "wb").write(audio)
+```
+
+## Requête
+
+<ParamField body="text" type="string">
+  Le texte à traduire, jusqu’à 2 000 caractères. Envoyez ce champ **ou** `file`.
+</ParamField>
+
+<ParamField body="file" type="file">
+  Un enregistrement à traduire. Envoyez ce champ **ou** `text`.
+</ParamField>
+
+<ParamField body="target" type="string" default="fr">
+  La langue vers laquelle traduire : `ha` ou `fr`.
+</ParamField>
+
+<ParamField body="source" type="string">
+  La langue de l’entrée : `ha` ou `fr`. Par défaut, la langue qui n’est pas `target`.
+</ParamField>
+
+<ParamField body="include_audio" type="boolean" default="false">
+  Renvoyer aussi la traduction parlée, en WAV base64.
+</ParamField>
+
+## Bonnes pratiques
+
+- **Traduisez des phrases entières.** Le modèle s’appuie sur la phrase autour d’un mot pour en choisir le sens ; un fragment perd ce contexte.
+- **Montrez les deux textes quand c’est important.** `source_text` permet au lecteur de vérifier ce qui a été compris avant de se fier à la traduction.
+- **Gardez une personne dans la boucle quand l’enjeu est élevé.** Les messages médicaux, juridiques et financiers méritent une vérification humaine avant d’arriver aux gens.
+
+## Limites
+
+- Haoussa et français uniquement. Le zarma ⇄ français n’est pas encore dans l’API (`400 unsupported_pair`).
+- 2 000 caractères de texte, ou 25 Mo et 5 minutes d’audio, par requête.
+
+## Voir aussi
+
+<CardGroup cols={3}>
+  <Card title="Construire un interprète" icon="circle-play" href="/fr/tutorials/hausa-french-interpreter">Tutoriel</Card>
+  <Card title="Transcription" icon="mic" href="/fr/capabilities/speech-to-text">Les mêmes règles pour l’audio</Card>
+  <Card title="Référence de l’API" icon="square-terminal" href="/fr/api-reference/translation/create-translation">POST /v1/translate</Card>
+</CardGroup>

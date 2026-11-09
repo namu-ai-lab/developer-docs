@@ -1,0 +1,34 @@
+---
+title: "Liste de vérification avant la production"
+description: "Avant que de vraies personnes dépendent de votre application, parcourez cette liste."
+icon: "list-checks"
+---
+
+## Clés et sécurité
+
+- [ ] La clé est sur votre serveur, lue depuis une variable d’environnement ou un gestionnaire de secrets. Elle n’est pas dans l’application, dans la page web ni dans le dépôt.
+- [ ] Chaque application et chaque environnement a sa propre clé, avec seulement les permissions qu’il utilise.
+- [ ] Vous savez comment [révoquer une clé](/fr/guides/api-keys#révoquer-une-clé) et qui, dans votre équipe, peut le faire.
+- [ ] Votre serveur vérifie vos propres utilisateurs avant d’appeler l’API pour eux, pour qu’un inconnu ne puisse pas se servir de votre serveur pour dépenser votre quota.
+
+## Fiabilité
+
+- [ ] Les délais d’attente sont généreux (plusieurs minutes), car la première requête après une période calme est plus lente.
+- [ ] Les erreurs réseau, `429 rate_limited` et les `5xx` sont réessayés avec une pause de plus en plus longue ; les erreurs `4xx` ne le sont pas.
+- [ ] Les enregistrements sont gardés jusqu’à l’arrivée de leur réponse, pour qu’un envoi raté ne demande jamais à quelqu’un de parler à nouveau.
+- [ ] Vos journaux gardent le `request_id` des requêtes qui échouent (mais ni l’audio ni le texte).
+
+## Coût et limites
+
+- [ ] L’audio diffusé à beaucoup de personnes est généré une fois et stocké.
+- [ ] Vous consultez [`/v1/usage`](/fr/guides/usage-and-rate-limits#vérifier-votre-consommation) et vous savez ce qui se passe dans votre application quand `quota_exceeded` arrive.
+- [ ] Si vous prévoyez de dépasser le quota de la bêta, vous [nous avez écrit](/fr/resources/support) avant le lancement.
+
+## Les personnes
+
+- [ ] Les auditeurs savent que la voix est générée par une IA.
+- [ ] Les gens savent que leur voix est envoyée à un service pour être transcrite ou traduite, et ils l’ont accepté.
+- [ ] Là où une erreur pourrait faire du tort (santé, argent, droit), une personne vérifie ce que le modèle a produit.
+- [ ] Des locuteurs natifs de la langue de vos utilisateurs ont écouté l’audio de votre application et lu ses transcriptions avant le lancement.
+
+La page [usage responsable](/fr/resources/responsible-use) dit à quoi l’API ne peut pas servir.

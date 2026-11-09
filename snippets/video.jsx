@@ -53,7 +53,14 @@ const embedUrl = (src) => {
   return src;
 };
 
-export const VideoSlot = ({ title, duration, src, caption }) => {
+/* lang="fr" on the French pages */
+const VIDEO_TEXT = {
+  en: { watch: "Watch", soon: "Video coming soon", play: "Play video" },
+  fr: { watch: "Regarder", soon: "Vidéo à venir", play: "Lire la vidéo" },
+};
+
+export const VideoSlot = ({ title, duration, src, caption, lang = "en" }) => {
+  const t = VIDEO_TEXT[lang] || VIDEO_TEXT.en;
   // The player loads only when someone taps it: a YouTube embed is close to a megabyte before anything plays.
   const [open, setOpen] = useState(false);
   if (src && open) {
@@ -80,10 +87,10 @@ export const VideoSlot = ({ title, duration, src, caption }) => {
         onClick={ready ? () => setOpen(true) : undefined}
         className={`namu-video-frame${ready ? " is-ready" : ""}`}
         role={ready ? undefined : "img"}
-        aria-label={ready ? `Play video: ${title}` : `${title}: video coming soon`}
+        aria-label={ready ? `${t.play}: ${title}` : `${title}: ${t.soon}`}
       >
         <span className="namu-video-top">
-          <span className="namu-video-pill">{ready ? "Watch" : "Video coming soon"}</span>
+          <span className="namu-video-pill">{ready ? t.watch : t.soon}</span>
           {duration && <span className="namu-video-duration">{duration}</span>}
         </span>
         <span className="namu-video-middle">

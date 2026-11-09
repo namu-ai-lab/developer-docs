@@ -1,0 +1,166 @@
+---
+title: "Python"
+description: "La bibliothèque Python officielle de l’API Namu : synthèse vocale, transcription, traduction et agent vocal."
+icon: "code"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="L’API Namu depuis Python" duration="6 min" lang="fr" />
+
+## Installation
+
+```bash
+pip install namu-ai
+```
+
+Python 3.9 ou plus récent. Le paquet s’appelle `namu-ai` ; vous importez `namu`. Définissez ensuite votre clé :
+
+```bash
+export NAMU_API_KEY="namu_sk_..."
+```
+
+## Démarrage rapide
+
+```python
+from namu import Namu
+
+client = Namu()  # lit NAMU_API_KEY
+
+# Synthèse vocale
+audio = client.speech("Sannu da zuwa! Muna farin cikin jin muryarku.", voice="nadia", format="mp3")
+open("welcome.mp3", "wb").write(audio)
+
+# Transcription
+result = client.transcribe("welcome.mp3", language="ha")
+print(result["text"])
+```
+
+## Utilisation
+
+<AccordionGroup>
+  <Accordion title="Synthèse vocale" icon="audio-lines" defaultOpen>
+    ```python
+    # Zarma, avec Mouhamad, en petit fichier Opus pour les données mobiles
+    audio = client.speech("Fofo! Mate ni go?", voice="mouhamad", language="dje", format="opus")
+    open("hello.ogg", "wb").write(audio)
+    ```
+    `format` vaut `wav` (par défaut), `mp3` ou `opus`. Voir [la synthèse vocale](/fr/capabilities/text-to-speech).
+  </Accordion>
+
+  <Accordion title="Transcription" icon="mic">
+    ```python
+    # Un chemin, des octets ou un fichier ouvert conviennent tous
+    result = client.transcribe("voice-note.ogg", language="ha")
+    print(result["text"], result["audio_seconds"])
+    ```
+  </Accordion>
+
+  <Accordion title="Traduction" icon="languages">
+    ```python
+    # Texte
+    fr = client.translate("Ina kwana? Yau za a yi zafi sosai.", source="ha", target="fr")
+    print(fr["text"])
+
+    # Parole, avec la traduction renvoyée sous forme parlée
+    import base64
+    result = client.translate(audio="question.ogg", source="ha", target="fr", include_audio=True)
+    open("answer.wav", "wb").write(base64.b64decode(result["audio"]))
+    ```
+  </Accordion>
+
+  <Accordion title="Agent vocal (recherche)" icon="message-circle">
+    ```python
+    import base64
+    turn = client.converse("hello.ogg", session_id="demo-42")
+    print(turn["heard"], "→", turn["reply"])
+    open("reply.wav", "wb").write(base64.b64decode(turn["audio"]))
+    ```
+    La clé doit avoir la permission `converse`.
+  </Accordion>
+
+  <Accordion title="Consommation, voix et modèles" icon="gauge">
+    ```python
+    print(client.usage())   # {'month_audio_seconds_used': 312.4, 'month_audio_seconds_limit': 1800.0}
+    print([v["id"] for v in client.voices()])   # ['nadia', 'warm', 'fr', 'mouhamad']
+    print([m["id"] for m in client.models()])
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Erreurs
+
+Chaque erreur est une `NamuError` ; les erreurs auxquelles l’API a répondu portent son `type` stable, le `status`, un `message` et le `request_id`. Chaque statut a sa propre classe :
+
+```python
+from namu import Namu, NamuError, QuotaExceededError, BadRequestError, APIConnectionError
+
+try:
+    audio = client.speech(text, voice="nadia")
+except QuotaExceededError:
+    ...  # le quota de ce mois est épuisé
+except BadRequestError as e:
+    print(e.type, e.message)  # unknown_voice, unsupported_language, missing_text, ...
+except APIConnectionError:
+    ...  # l’API est restée injoignable, même après les nouvelles tentatives
+except NamuError as e:
+    print(e.status, e.type, e.request_id)
+```
+
+| Classe | Statut |
+| --- | --- |
+| `BadRequestError` | 400 |
+| `AuthenticationError` | 401 |
+| `PermissionDeniedError` | 403 |
+| `PayloadTooLargeError` | 413 |
+| `UnsupportedAudioError` | 415 |
+| `NothingHeardError` | 422 |
+| `RateLimitError`, et `QuotaExceededError` pour `quota_exceeded` | 429 |
+| `InternalServerError` | 5xx |
+| `APIConnectionError`, `APITimeoutError` | pas de réponse |
+
+## Nouvelles tentatives et délais d’attente
+
+Le client réessaie les erreurs réseau, `429 rate_limited` et `502`/`503`/`504` jusqu’à 3 fois, en attendant `Retry-After`, ou 1, 2, puis 4 secondes. Il ne réessaie jamais `quota_exceeded` ni les autres `4xx`. Le délai d’attente par défaut est de 300 secondes, car la première requête après une période calme est plus lente.
+
+```python
+client = Namu(timeout=120, max_retries=5)
+```
+
+## Dans une application web
+
+Gardez le client sur le serveur. Avec Flask, une route qui transforme du texte en parole pour votre application :
+
+```python
+from flask import Flask, request, Response
+from namu import Namu, NamuError
+
+app = Flask(__name__)
+client = Namu()
+
+@app.post("/speak")
+def speak():
+    # vérifiez ici votre propre utilisateur avant de consommer votre quota
+    text = request.json["text"]
+    try:
+        audio = client.speech(text, voice="nadia", format="mp3")
+    except NamuError as e:
+        return {"error": e.type}, e.status
+    return Response(audio, mimetype="audio/mpeg")
+```
+
+## Configuration
+
+| Argument | Variable d’environnement | Valeur par défaut |
+| --- | --- | --- |
+| `api_key` | `NAMU_API_KEY` | aucune |
+| `base_url` | `NAMU_BASE_URL` | `https://api.namuai-lab.com` |
+| `timeout` | | 300 secondes |
+| `max_retries` | | 3 |
+| `session` | | une nouvelle `requests.Session` |
+
+Les réponses sont des dictionnaires typés avec `TypedDict` (`namu.types`) : votre éditeur complète donc leurs champs.
+
+## Code source
+
+La bibliothèque est open source (Apache 2.0) : [github.com/namu-ai-lab/namu-sdks](https://github.com/namu-ai-lab/namu-sdks/tree/main/python). Les changements sont listés dans son historique des versions.

@@ -1,0 +1,78 @@
+---
+title: "SDK"
+sidebarTitle: "Vue d’ensemble"
+description: "Utilisez l’API Namu depuis Python, JavaScript, Android, iOS ou tout langage capable d’envoyer des requêtes HTTP."
+icon: "package"
+---
+
+import { VideoSlot } from "/snippets/video.jsx";
+
+<VideoSlot title="Choisir comment appeler l’API Namu" duration="3 min" lang="fr" />
+
+L’API Namu repose simplement sur HTTPS et JSON : tous les langages peuvent donc l’appeler. Pour Python et JavaScript, il existe des bibliothèques officielles : installez-en une et appelez `client.speech(...)`, `client.transcribe(...)`, `client.translate(...)`. Elles lisent votre clé dans `NAMU_API_KEY`, réessaient ce qui peut l’être sans risque, typent chaque réponse et lèvent une classe d’erreur par statut, avec son code stable et l’identifiant de la requête.
+
+## Bibliothèques
+
+| Langage | Installation | Dépend de | Fonctionne sur |
+| --- | --- | --- | --- |
+| [Python](/fr/sdks/python) | `pip install namu-ai` | `requests` | Python 3.9+ |
+| [JavaScript et TypeScript](/fr/sdks/javascript) | `npm install namu-ai` | rien | Node 18+, Deno, Bun, Cloudflare Workers |
+| [Tout langage](/fr/sdks/http) | HTTP, ou un client généré à partir de notre fichier OpenAPI | une bibliothèque HTTP | partout |
+
+## Applications mobiles
+
+Les applications mobiles parlent à **votre serveur**, et votre serveur parle à Namu : une clé placée dans une application peut en être extraite. Les pages mobiles montrent les deux moitiés.
+
+| Plateforme | Page | Ce qu’elle montre |
+| --- | --- | --- |
+| Android | [Android (Kotlin)](/fr/sdks/android) | Enregistrer une note vocale, l’envoyer à votre serveur, lire la réponse |
+| iOS | [iOS (Swift)](/fr/sdks/ios) | La même chose avec `AVAudioRecorder` et `URLSession` |
+
+## Créer et exporter une clé d’API
+
+Chaque client lit la clé dans l’environnement :
+
+<CodeGroup>
+  ```bash macOS et Linux
+  export NAMU_API_KEY="namu_sk_..."
+  ```
+
+  ```powershell Windows (PowerShell)
+  setx NAMU_API_KEY "namu_sk_..."
+  ```
+</CodeGroup>
+
+Créez une clé dans la [console](https://www.namuai-lab.com/fr/account/keys). Pour en savoir plus, voir [Clés d’API](/fr/guides/api-keys).
+
+## Le même appel dans chaque langage
+
+<CodeGroup>
+  ```python Python
+  from namu import Namu
+
+  client = Namu()
+  audio = client.speech("Sannu da zuwa!", voice="nadia", format="mp3")
+  open("welcome.mp3", "wb").write(audio)
+  ```
+
+  ```typescript TypeScript
+  import { writeFile } from "node:fs/promises";
+  import { Namu } from "namu-ai";
+
+  const namu = new Namu();
+  const audio = await namu.speech("Sannu da zuwa!", { voice: "nadia", format: "mp3" });
+  await writeFile("welcome.mp3", Buffer.from(audio));
+  ```
+
+  ```bash curl
+  curl https://api.namuai-lab.com/v1/speech \
+    -H "Authorization: Bearer $NAMU_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"text": "Sannu da zuwa!", "voice": "nadia", "format": "mp3"}' \
+    -o welcome.mp3
+  ```
+</CodeGroup>
+
+## Bibliothèques de la communauté
+
+Aucune pour l’instant. Si vous créez une bibliothèque Namu pour Dart, PHP, Go, Kotlin ou un autre langage, [dites-le-nous](/fr/resources/support) et nous l’ajouterons ici. Les bibliothèques de la communauté ne sont pas maintenues par Namu : vérifiez-les avant de les utiliser.

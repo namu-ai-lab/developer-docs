@@ -1,0 +1,63 @@
+---
+title: "Historique des versions"
+description: "Ce qui a changé dans l’API Namu, du plus récent au plus ancien."
+icon: "history"
+rss: true
+---
+
+<Update label="Novembre 2026" description="Nouveauté · SDK">
+  ## Bibliothèques officielles pour Python et JavaScript
+
+  `pip install namu-ai` et `npm install namu-ai` : toute l’API, des réponses typées, une classe d’erreur par statut, les nouvelles tentatives et les délais d’attente intégrés. En open source sous licence Apache 2.0, sur [namu-ai-lab/namu-sdks](https://github.com/namu-ai-lab/namu-sdks).
+</Update>
+
+<Update label="7 novembre 2026" description="Nouveauté · speech-recognition · /v1/transcribe">
+  ## Reconnaissance vocale en zarma et en français
+
+  `/v1/transcribe` accepte désormais `language=dje` (zarma) et `language=fr` (français) en plus du haoussa, avec un nouveau modèle de reconnaissance. Les transcriptions arrivent en minuscules, sans ponctuation.
+</Update>
+
+<Update label="7 novembre 2026" description="Changement · tous les modèles · /v1/models">
+  ## Les modèles portent le nom de leur tâche
+
+  Les modèles s’appellent désormais `speech-recognition`, `speech-synthesis`, `translation` et `voice-agent` (auparavant `tatsuniya`, `tafiya`, `kora` et `air`). Les nouveaux noms apparaissent dans le champ `model` des réponses et dans `/v1/models`. Les requêtes n’ont jamais nommé de modèle : aucun code n’a besoin de changer, sauf s’il lit ce champ.
+
+  Toutes les voix sont désormais produites par le même modèle de synthèse vocale.
+</Update>
+
+<Update label="1er novembre 2026" description="Nouveauté · speech-synthesis · /v1/speech">
+  ## Synthèse vocale en zarma, et la voix `mouhamad`
+
+  `/v1/speech` parle zarma (`"language": "dje"`) avec la nouvelle voix `mouhamad`, qui parle aussi haoussa. La voix française `fr` est de retour.
+</Update>
+
+<Update label="1er novembre 2026" description="Changement · /v1">
+  ## Nouvelle adresse : api.namuai-lab.com
+
+  L’API est servie à l’adresse `https://api.namuai-lab.com`. L’ancienne adresse continue de répondre pour les intégrations existantes ; merci de passer à la nouvelle.
+</Update>
+
+<Update label="31 octobre 2026" description="Nouveauté · speech-synthesis, translation · /v1/speech, /v1/translate">
+  ## MP3 et Opus, et traduction de texte
+
+  - `/v1/speech` accepte `format` : `wav` (par défaut), `mp3`, `opus` ou `json`. Un fichier Opus fait environ un douzième de la taille d’un WAV.
+  - `/v1/translate` traduit du texte : envoyez du JSON avec `text`, `source` et `target`.
+</Update>
+
+<Update label="31 octobre 2026" description="Retrait · /v1/speech, /v1/converse">
+  ## La voix `salim` est retirée
+
+  Nous n’avons pas pu confirmer le consentement de la personne derrière la voix `salim` : elle a donc été retirée. Les requêtes qui la nomment renvoient `400 unknown_voice` (ou `unknown_persona`) ; aucune autre voix ne prend sa place.
+</Update>
+
+<Update label="19 octobre 2026" description="Lancement · /v1">
+  ## L’API Namu ouvre en bêta
+
+  Clés d’API, synthèse vocale, reconnaissance vocale, traduction haoussa ⇄ français et agent vocal, avec 30 minutes d’audio gratuites par mois pour chaque compte.
+</Update>
+
+## Comment nous faisons évoluer l’API
+
+- **De nouveaux champs et points d’accès** peuvent arriver à tout moment. Écrivez votre code pour qu’il ignore les champs qu’il ne connaît pas.
+- **Les changements qui pourraient casser une intégration qui fonctionne** (retirer ou renommer un champ, changer une valeur par défaut) sont annoncés ici, avec leur date, avant d’avoir lieu, sauf quand nous devons agir tout de suite pour protéger des personnes, comme pour une voix retirée.
+- **Les modèles en recherche** (l’agent vocal) peuvent changer sans préavis.
