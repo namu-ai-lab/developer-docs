@@ -10,14 +10,14 @@
     "href": "/"
   },
   "colors": {
-    "primary": "#0D0D0D",
-    "light": "#F5F5F5",
-    "dark": "#0D0D0D"
+    "primary": "#15120F",
+    "light": "#E8A77B",
+    "dark": "#15120F"
   },
   "background": {
     "color": {
-      "light": "#FFFFFF",
-      "dark": "#0D0D0D"
+      "light": "#FFFAF1",
+      "dark": "#1C1410"
     }
   },
   "fonts": {
@@ -275,47 +275,6 @@
               "GET /v1/usage",
               "GET /v1/health"
             ]
-          }
-        ]
-      }
-    ]
-  },
-  "footer": {
-    "socials": {
-      "website": "https://www.namuai-lab.com"
-    },
-    "links": [
-      {
-        "header": "Namu API",
-        "items": [
-          {
-            "label": "Get an API key",
-            "href": "https://www.namuai-lab.com/account/keys"
-          },
-          {
-            "label": "Usage",
-            "href": "https://www.namuai-lab.com/account/usage"
-          },
-          {
-            "label": "Changelog",
-            "href": "/resources/changelog"
-          }
-        ]
-      },
-      {
-        "header": "Namu AI Lab",
-        "items": [
-          {
-            "label": "Research",
-            "href": "https://www.namuai-lab.com/research"
-          },
-          {
-            "label": "Privacy",
-            "href": "https://www.namuai-lab.com/privacy"
-          },
-          {
-            "label": "Terms",
-            "href": "https://www.namuai-lab.com/terms"
           }
         ]
       }
