@@ -4,7 +4,9 @@ Agent map, not a manual. Truth order: the Namu API's behaviour (the gateway code
 
 ## What this repository is
 A public Mintlify site for the Namu API (speech recognition, speech synthesis, translation, voice agent; Hausa, Zarma,
-French). Tabs: Documentation, API reference (generated from `api-reference/openapi.yaml`), SDKs, Tutorials, Resources.
+French), laid out like developers.openai.com: tabs Overview, Models, Text to speech, Speech to text, Translation,
+Voice agent, Production, API reference (generated from `api-reference/openapi.yaml`). Look and frame: `style.css` on the
+Mint theme.
 Every push to `main` deploys. Internal knowledge lives in the private hub (`namu-ai-lab/namu-docs`), reachable through
 the namu MCP server (namu plugin): run `/namu:web` or `/namu:cloud`, or call `team_context` and `api_catalog`, before changing facts.
 

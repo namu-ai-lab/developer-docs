@@ -21,7 +21,7 @@ mint validate       # the site builds
 
 | Path | What |
 | --- | --- |
-| `docs.json` | Navigation (Documentation, API reference, SDKs, Tutorials, Resources), theme, banner, navbar, footer |
+| `docs.json` | Navigation (tabs Overview, Models, Text to speech, Speech to text, Translation, Voice agent, Production, API reference), theme (Mint), banner, navbar, footer |
 | `index.mdx`, `quickstart.mdx`, `models.mdx`, `voices-and-languages.mdx`, `pricing-and-limits.mdx` | Get started |
 | `capabilities/` | Text to speech, speech to text, translation, voice agent |
 | `guides/` | API keys, audio formats, weak networks, errors, usage and rate limits, production checklist |
