@@ -1,30 +1,30 @@
-/* Namu developer docs: the brand on top of Mintlify's Maple theme. Cream paper, warm Ink, a little Kola, DM Sans,
+/* Namu developer docs, laid out like OpenAI's developer docs on Mintlify's Mint theme: white, near-black, light grey cards, DM Sans,
    real waveforms instead of decoration, nothing that downloads until someone asks for it. Mintlify loads every .css
    file in the content folder on every page. Dark mode is the `dark` class on <html>. */
 
 :root {
-  --namu-paper: #fffaf1;
-  --namu-surface: #f7f0e3;
-  --namu-surface-2: #f3e7d1;
-  --namu-clay: #edd9b0;
-  --namu-ink: #1c1410;
-  --namu-ink-2: #4a3d33;
-  --namu-ink-3: #7a6352;
+  --namu-paper: #ffffff;
+  --namu-surface: #f7f7f8;
+  --namu-surface-2: #efeff0;
+  --namu-clay: #e6e6e7;
+  --namu-ink: #0d0d0d;
+  --namu-ink-2: #3a3a3a;
+  --namu-ink-3: #6b6b6b;
   --namu-kola: #6b3e1e;
-  --namu-line: rgba(28, 20, 16, 0.1);
-  --namu-line-2: rgba(28, 20, 16, 0.16);
+  --namu-line: rgba(13, 13, 13, 0.08);
+  --namu-line-2: rgba(13, 13, 13, 0.14);
 }
 .dark {
-  --namu-paper: #1c1410;
-  --namu-surface: #251b15;
-  --namu-surface-2: #2e221b;
-  --namu-clay: #3a2b21;
-  --namu-ink: #fffaf1;
-  --namu-ink-2: #e6d9c6;
-  --namu-ink-3: #b8a48f;
+  --namu-paper: #0d0d0d;
+  --namu-surface: #181818;
+  --namu-surface-2: #222222;
+  --namu-clay: #2c2c2c;
+  --namu-ink: #f5f5f5;
+  --namu-ink-2: #cfcfcf;
+  --namu-ink-3: #9a9a9a;
   --namu-kola: #e8a77b;
-  --namu-line: rgba(255, 250, 241, 0.1);
-  --namu-line-2: rgba(255, 250, 241, 0.16);
+  --namu-line: rgba(255, 255, 255, 0.08);
+  --namu-line-2: rgba(255, 255, 255, 0.14);
 }
 
 /* ---------- home ---------- */
@@ -156,3 +156,117 @@
 
 /* the logo: the brand mark is drawn on a wide canvas, so give it room in the navigation */
 img.nav-logo { height: 34px !important; max-width: none !important; }
+
+/* ---------- the frame, after developers.openai.com ----------
+   A full-width header, then a grey band holding the section tabs, centred, the current one underlined; a quiet
+   sidebar of plain links (no icons) under bold group titles; the current page on a light grey pill. */
+#navbar { background: var(--namu-paper); }
+#navbar div:has(> .nav-tabs) {
+  justify-content: center; background: var(--namu-surface); border-top: 1px solid var(--namu-line);
+  border-bottom: 1px solid var(--namu-line);
+}
+.nav-tabs { gap: 30px; }
+.nav-tabs-item { font-size: 15px; font-weight: 400 !important; color: var(--namu-ink-3) !important; }
+.nav-tabs-item:hover { color: var(--namu-ink) !important; }
+.nav-tabs-item[data-active="true"] { color: var(--namu-ink) !important; }
+.nav-tabs-item[data-active="true"]::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: var(--namu-ink);
+}
+.nav-tabs-item > div:last-child[class*="bottom-0"] { display: none; }
+
+#sidebar .sidebar-title { font-size: 14.5px; font-weight: 600 !important; color: var(--namu-ink) !important; padding-left: 12px; }
+#sidebar li a svg:not([class*="external"]) { display: none; }
+#sidebar li a { border-radius: 10px; font-size: 14.5px; color: var(--namu-ink-2); padding-left: 12px !important; }
+#sidebar li a:hover { background: var(--namu-surface); color: var(--namu-ink); }
+#sidebar li[data-active="true"] > a { background: var(--namu-surface-2) !important; color: var(--namu-ink) !important; font-weight: 500; }
+#sidebar li[data-active="true"] > a::before { display: none !important; }
+
+/* buttons in the header: black pills, like the API Dashboard button */
+#navbar a[class*="rounded"][href*="/account"] { border-radius: 999px !important; background: var(--namu-ink) !important; color: var(--namu-paper) !important; }
+
+/* headings and body, a little denser */
+#content-area h1, #header h1 { font-size: 32px !important; letter-spacing: -0.02em; font-weight: 600 !important; }
+#content-area h2 { font-size: 22px; letter-spacing: -0.01em; }
+
+/* ---------- home, after developers.openai.com/api/docs ---------- */
+.namu-pill {
+  display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 999px; font-size: 15px;
+  font-weight: 500; text-decoration: none !important; border: 0 !important; background: var(--namu-surface-2); color: var(--namu-ink) !important;
+}
+.namu-pill:hover { background: var(--namu-clay); }
+.namu-pill--ink { background: var(--namu-ink); color: var(--namu-paper) !important; }
+.namu-pill--ink:hover { background: var(--namu-ink-2); }
+
+.namu-home-hero {
+  display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr); gap: 28px; align-items: center;
+  padding: 28px; border-radius: 24px; background: var(--namu-surface); margin: 4px 0 20px;
+}
+.namu-home-hero h2 { margin: 0; font-size: 22px; font-weight: 600; color: var(--namu-ink); }
+.namu-home-hero-text p { margin: 12px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--namu-ink-2); }
+.namu-home-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.namu-home-hero-code > div { margin: 0 !important; }
+
+.namu-home-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 22px 26px;
+  border-radius: 20px; box-shadow: inset 0 0 0 1px var(--namu-line-2); margin-bottom: 8px;
+}
+.namu-home-banner p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--namu-ink-2); }
+.namu-home-banner .namu-home-banner-title { margin-bottom: 4px; font-weight: 600; color: var(--namu-ink); }
+.namu-home-banner .namu-pill { flex: none; }
+
+.namu-home-h { margin: 40px 0 14px !important; font-size: 26px !important; font-weight: 600; letter-spacing: -0.01em; }
+.namu-home-row { display: flex; align-items: baseline; justify-content: space-between; }
+.namu-home-row .namu-home-h { margin-bottom: 4px !important; }
+.namu-home-more { font-size: 14.5px; color: var(--namu-ink-2) !important; text-decoration: none !important; border: 0 !important; }
+.namu-home-sub { margin: 0 0 14px; font-size: 15px; color: var(--namu-ink-3); }
+
+.namu-home-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.namu-home-path {
+  display: flex; flex-direction: column; gap: 8px; padding: 24px; border-radius: 20px; text-decoration: none !important;
+  box-shadow: inset 0 0 0 1px var(--namu-line-2); color: var(--namu-ink) !important;
+}
+.namu-home-path:hover { background: var(--namu-surface); }
+.namu-home-path-title { font-size: 18px; font-weight: 600; }
+.namu-home-path-text { font-size: 15px; line-height: 1.55; color: var(--namu-ink-2); }
+.namu-home-path-text code { font-size: 13px; }
+.namu-home-path-link { margin-top: 8px; font-size: 14.5px; font-weight: 500; }
+.namu-home-path-link::after { content: " →"; }
+
+.namu-home-models { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.namu-home-model {
+  display: flex; flex-direction: column; gap: 6px; padding: 20px; min-height: 190px; border-radius: 18px;
+  background: var(--namu-surface); text-decoration: none !important; color: var(--namu-ink) !important;
+}
+.namu-home-model:hover { background: var(--namu-surface-2); }
+.namu-home-model-id { font: 12.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--namu-ink-3); }
+.namu-home-model-name { font-size: 17px; font-weight: 600; }
+.namu-home-model-text { font-size: 14px; line-height: 1.5; color: var(--namu-ink-2); }
+.namu-home-badge {
+  align-self: flex-start; margin-top: auto; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 500;
+  background: var(--namu-paper); color: var(--namu-ink);
+}
+.namu-home-badge--quiet { color: var(--namu-ink-3); }
+
+.namu-home-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 24px; }
+.namu-home-item, .namu-home-help a {
+  display: flex; flex-direction: column; gap: 3px; padding: 14px 12px; border-radius: 14px; text-decoration: none !important;
+  border: 0 !important; color: var(--namu-ink) !important;
+}
+.namu-home-item:hover, .namu-home-help a:hover { background: var(--namu-surface); }
+.namu-home-item-title { font-size: 15.5px; font-weight: 600; }
+.namu-home-item-text { font-size: 14px; line-height: 1.5; color: var(--namu-ink-3); }
+.namu-home-help {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 16px; margin-top: 36px; padding-top: 20px;
+  border-top: 1px solid var(--namu-line);
+}
+
+@media (max-width: 1024px) {
+  .namu-home-hero { grid-template-columns: 1fr; }
+  .namu-home-models { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .namu-home-grid, .namu-home-help { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .namu-home-hero { padding: 20px; }
+  .namu-home-banner { flex-direction: column; align-items: flex-start; }
+  .namu-home-paths, .namu-home-models, .namu-home-grid, .namu-home-help { grid-template-columns: 1fr; }
+}

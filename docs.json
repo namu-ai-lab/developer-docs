@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "mint",
   "name": "Namu API",
   "description": "Speech recognition, speech synthesis, translation and a voice agent for Hausa, Zarma and French.",
   "favicon": "/assets/logos/namu-favicon.svg",
@@ -10,14 +10,14 @@
     "href": "/"
   },
   "colors": {
-    "primary": "#6B3E1E",
-    "light": "#E8A77B",
-    "dark": "#6B3E1E"
+    "primary": "#0D0D0D",
+    "light": "#F5F5F5",
+    "dark": "#0D0D0D"
   },
   "background": {
     "color": {
-      "light": "#FFFAF1",
-      "dark": "#1C1410"
+      "light": "#FFFFFF",
+      "dark": "#0D0D0D"
     }
   },
   "fonts": {
@@ -47,16 +47,12 @@
       {
         "label": "Namu AI Lab",
         "href": "https://www.namuai-lab.com"
-      },
-      {
-        "label": "Console",
-        "href": "https://www.namuai-lab.com/account"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Get an API key",
-      "href": "https://www.namuai-lab.com/account/keys"
+      "label": "API dashboard",
+      "href": "https://www.namuai-lab.com/account"
     }
   },
   "contextual": {
@@ -84,44 +80,149 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentation",
-        "icon": "book-open",
+        "tab": "Overview",
         "groups": [
           {
             "group": "Get started",
             "pages": [
               "index",
               "quickstart",
-              "models",
-              "voices-and-languages",
               "pricing-and-limits"
             ]
           },
           {
-            "group": "Capabilities",
+            "group": "SDKs and tools",
+            "pages": [
+              "sdks/overview",
+              "sdks/python",
+              "sdks/javascript",
+              "sdks/http"
+            ]
+          },
+          {
+            "group": "Mobile apps",
+            "pages": [
+              "sdks/android",
+              "sdks/ios"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/changelog",
+              "resources/support",
+              "resources/responsible-use",
+              "resources/glossary"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Models",
+        "groups": [
+          {
+            "group": "Models",
+            "pages": [
+              "models",
+              "voices-and-languages"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Text to speech",
+        "groups": [
+          {
+            "group": "Text to speech",
             "pages": [
               "capabilities/text-to-speech",
-              "capabilities/speech-to-text",
-              "capabilities/translation",
+              "guides/audio-formats"
+            ]
+          },
+          {
+            "group": "Build",
+            "pages": [
+              "tutorials/read-aloud-in-hausa",
+              "tutorials/voice-messages-for-a-clinic"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Speech to text",
+        "groups": [
+          {
+            "group": "Speech to text",
+            "pages": [
+              "capabilities/speech-to-text"
+            ]
+          },
+          {
+            "group": "Build",
+            "pages": [
+              "tutorials/transcribe-a-voice-note"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Translation",
+        "groups": [
+          {
+            "group": "Translation",
+            "pages": [
+              "capabilities/translation"
+            ]
+          },
+          {
+            "group": "Build",
+            "pages": [
+              "tutorials/hausa-french-interpreter"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Voice agent",
+        "groups": [
+          {
+            "group": "Voice agent",
+            "pages": [
               "capabilities/voice-agent"
             ]
           },
           {
-            "group": "Building with Namu",
+            "group": "Build",
             "pages": [
+              "tutorials/talk-to-the-voice-agent"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Production",
+        "groups": [
+          {
+            "group": "Production",
+            "pages": [
+              "guides/production-checklist",
               "guides/api-keys",
-              "guides/audio-formats",
-              "guides/weak-networks",
               "guides/errors",
               "guides/usage-and-rate-limits",
-              "guides/production-checklist"
+              "guides/weak-networks"
+            ]
+          },
+          {
+            "group": "Build",
+            "pages": [
+              "tutorials/first-call",
+              "tutorials/watch-your-usage"
             ]
           }
         ]
       },
       {
         "tab": "API reference",
-        "icon": "square-terminal",
         "groups": [
           {
             "group": "Overview",
@@ -173,72 +274,6 @@
             "pages": [
               "GET /v1/usage",
               "GET /v1/health"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "SDKs",
-        "icon": "package",
-        "groups": [
-          {
-            "group": "Libraries",
-            "pages": [
-              "sdks/overview",
-              "sdks/python",
-              "sdks/javascript",
-              "sdks/http"
-            ]
-          },
-          {
-            "group": "Mobile",
-            "pages": [
-              "sdks/android",
-              "sdks/ios"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Tutorials",
-        "icon": "circle-play",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "tutorials/index"
-            ]
-          },
-          {
-            "group": "First steps",
-            "pages": [
-              "tutorials/first-call",
-              "tutorials/read-aloud-in-hausa",
-              "tutorials/transcribe-a-voice-note"
-            ]
-          },
-          {
-            "group": "Build",
-            "pages": [
-              "tutorials/hausa-french-interpreter",
-              "tutorials/voice-messages-for-a-clinic",
-              "tutorials/talk-to-the-voice-agent",
-              "tutorials/watch-your-usage"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Resources",
-        "icon": "life-buoy",
-        "groups": [
-          {
-            "group": "Resources",
-            "pages": [
-              "resources/changelog",
-              "resources/support",
-              "resources/responsible-use",
-              "resources/glossary"
             ]
           }
         ]
