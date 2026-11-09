@@ -1,30 +1,31 @@
-/* Namu developer docs, laid out like OpenAI's developer docs on Mintlify's Mint theme: white, near-black, light grey cards, DM Sans,
+/* Namu developer docs, laid out like OpenAI's developer docs on Mintlify's Mint theme, in the Lab's colours (paper #FFFAF1,
+   warm surfaces, ink #15120F, a little Kola; Ink #1C1410 is the only dark ground), DM Sans,
    real waveforms instead of decoration, nothing that downloads until someone asks for it. Mintlify loads every .css
    file in the content folder on every page. Dark mode is the `dark` class on <html>. */
 
 :root {
-  --namu-paper: #ffffff;
-  --namu-surface: #f7f7f8;
-  --namu-surface-2: #efeff0;
-  --namu-clay: #e6e6e7;
-  --namu-ink: #0d0d0d;
-  --namu-ink-2: #3a3a3a;
-  --namu-ink-3: #6b6b6b;
+  --namu-paper: #fffaf1;
+  --namu-surface: #f7f0e3;
+  --namu-surface-2: #f3e7d1;
+  --namu-clay: #edd9b0;
+  --namu-ink: #15120f;
+  --namu-ink-2: #4a453f;
+  --namu-ink-3: #6e675f;
   --namu-kola: #6b3e1e;
-  --namu-line: rgba(13, 13, 13, 0.08);
-  --namu-line-2: rgba(13, 13, 13, 0.14);
+  --namu-line: #efe4d2;
+  --namu-line-2: rgba(21, 18, 15, 0.12);
 }
 .dark {
-  --namu-paper: #0d0d0d;
-  --namu-surface: #181818;
-  --namu-surface-2: #222222;
-  --namu-clay: #2c2c2c;
-  --namu-ink: #f5f5f5;
-  --namu-ink-2: #cfcfcf;
-  --namu-ink-3: #9a9a9a;
+  --namu-paper: #1c1410;
+  --namu-surface: #251b15;
+  --namu-surface-2: #2e221b;
+  --namu-clay: #3a2b21;
+  --namu-ink: #fffaf1;
+  --namu-ink-2: #e6d9c6;
+  --namu-ink-3: #b8a48f;
   --namu-kola: #e8a77b;
-  --namu-line: rgba(255, 255, 255, 0.08);
-  --namu-line-2: rgba(255, 255, 255, 0.14);
+  --namu-line: rgba(255, 250, 241, 0.1);
+  --namu-line-2: rgba(255, 250, 241, 0.16);
 }
 
 /* ---------- home ---------- */
@@ -270,3 +271,7 @@ img.nav-logo { height: 34px !important; max-width: none !important; }
   .namu-home-banner { flex-direction: column; align-items: flex-start; }
   .namu-home-paths, .namu-home-models, .namu-home-grid, .namu-home-help { grid-template-columns: 1fr; }
 }
+
+/* code blocks and cards sit on the Lab's warm white, not grey */
+#content-area pre, #content-area [class*="code-block"] { background-color: #fffdf8; }
+.dark #content-area pre, .dark #content-area [class*="code-block"] { background-color: #241a14; }
