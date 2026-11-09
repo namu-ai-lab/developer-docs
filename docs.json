@@ -5,8 +5,8 @@
   "description": "Speech recognition, speech synthesis, translation and a voice agent for Hausa, Zarma and French.",
   "favicon": "/assets/logos/namu-favicon.svg",
   "logo": {
-    "light": "/assets/logos/namu-docs-logo-dark.svg",
-    "dark": "/assets/logos/namu-docs-logo-light.svg",
+    "light": "/assets/logos/namu-logo-on-light.png",
+    "dark": "/assets/logos/namu-logo-on-dark.png",
     "href": "/"
   },
   "colors": {
