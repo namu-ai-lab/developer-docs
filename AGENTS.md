@@ -20,5 +20,5 @@ the namu MCP server (namu plugin): run `/namu:web` or `/namu:cloud`, or call `te
 - Every API fact must match the gateway; change `api-reference/openapi.yaml`, the page and `resources/changelog.mdx` together.
 - The libraries are `namu-ai` on PyPI and npm (`namu-ai-lab/namu-sdks`); keep `sdks/python.mdx` and `sdks/javascript.mdx` in step with them.
 - Video frames (`snippets/video.jsx` `VideoSlot`) stay empty until a real video link exists; the README lists them.
-- Name the third party where data goes: translation and the voice agent's replies use Google Gemini through OpenRouter.
+- Never name what runs behind the API in a public page: no model providers or routers, no upstream models, no cloud or hosting vendors. Say what Namu does and keeps, not what it runs on (the founder, 27 Nov 2026).
 - Hausa and Zarma examples are marked for native review.
