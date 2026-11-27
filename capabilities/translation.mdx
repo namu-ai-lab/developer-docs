@@ -17,10 +17,6 @@ import { VideoSlot } from "/snippets/video.jsx";
 - **Input:** JSON text (up to 2,000 characters), or audio like [speech to text](/capabilities/speech-to-text#supported-audio)
 - **Counts:** text: characters ÷ 15 as seconds; audio: the length you send; plus the spoken translation if you ask for it
 
-<Note>
-  The translation is written by **Google Gemini through OpenRouter**, which receives the text to translate (and, for spoken French, the recording, to write it down). Tell your users if their messages leave for a third party. Speech to text and text to speech run on Namu's own models.
-</Note>
-
 ## Translate text
 
 Send JSON. `target` is the language you want; `source` is the other one unless you say otherwise.

@@ -17,10 +17,6 @@ import { VideoSlot } from "/snippets/video.jsx";
 - **Entrée :** du texte en JSON (jusqu’à 2 000 caractères), ou de l’audio comme pour la [transcription](/fr/capabilities/speech-to-text#audio-pris-en-charge)
 - **Ce qui est compté :** pour un texte, le nombre de caractères ÷ 15, en secondes ; pour l’audio, la durée envoyée ; plus la traduction parlée si vous la demandez
 
-<Note>
-  La traduction est rédigée par **Google Gemini via OpenRouter**, qui reçoit le texte à traduire (et, pour le français parlé, l’enregistrement, afin de le mettre par écrit). Prévenez vos utilisateurs si leurs messages partent chez un tiers. La transcription et la synthèse vocale tournent sur les propres modèles de Namu.
-</Note>
-
 ## Traduire un texte
 
 Envoyez du JSON. `target` est la langue que vous voulez ; `source` est l’autre, sauf indication contraire.

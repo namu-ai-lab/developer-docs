@@ -69,5 +69,4 @@ Requests never name a model, so nothing in your code needs to change.
 - **Transcripts** come in lower case, without punctuation.
 - **Speech** comes back as WAV by default; ask for `opus` for the smallest files ([audio formats](/guides/audio-formats)).
 - **The first request after a quiet spell** is slower while the model wakes up. Allow up to a couple of minutes on that first call, and keep a generous timeout.
-- **Where the work happens.** `speech-recognition` and `speech-synthesis` run on Namu's own models. `translation` and the `voice-agent`'s replies are written by Google Gemini through OpenRouter, which receives the text they work on.
 - **Native review.** The Hausa and Zarma examples in these docs have not all been reviewed by native speakers yet. If you see a mistake, [tell us](/resources/support).
